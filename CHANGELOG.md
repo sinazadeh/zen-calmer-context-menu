@@ -8,6 +8,8 @@ published as a GitHub release with its notes below (see
 
 ## [Unreleased]
 
+## [5.4.0] - 2026-10-24
+
 ### Added
 
 - Links below the settings-page introduction to star the project on GitHub or
