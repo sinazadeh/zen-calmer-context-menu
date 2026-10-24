@@ -16,6 +16,17 @@ const chromeWin = (() => {
 })();
 const api = chromeWin?.ZenContextMenu ?? null;
 
+// A system-principal chrome:// page cannot directly navigate a new content
+// tab to an https: URL. Let the browser window open these known web links;
+// ordinary anchors remain the fallback for the standalone sample page.
+for (const link of document.querySelectorAll(".support-link")) {
+  link.addEventListener("click", (event) => {
+    if (api?.openSupportPage(link.href)) {
+      event.preventDefault();
+    }
+  });
+}
+
 // Opened outside Zen (or before Zen was restarted after installing), the page
 // shows sample data (sample.js) so it can still be looked at.
 const SAMPLE_PREFS = new Map();

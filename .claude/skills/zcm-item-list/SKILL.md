@@ -126,17 +126,8 @@ checks). Each row has a **More** button (shown on hover) that folds it into
 "More options"; submenu items can't be folded, hidden ones can't either.
 The preview moves folded items into a "More options" entry at the end.
 
-The Backup card exports `makeBackup()` (in `menus.js`): `format`,
-`version`, the hidden and folded keys and the `uc.*` style options (the
-icon style as its string); the macOS native-menus preference is the
-browser's and stays out. A backup without `folded` (made before it
-existed) folds nothing. A chrome:// page
-can't download with `<a download>`, so export goes through
-`nsIFilePicker` and `IOUtils`. An imported file is untrusted:
-`parseBackup()` takes only string keys (canonicalized), booleans for
-known options and listed values for options with choices, refuses other files and newer versions, and the page asks
-before replacing anything. Raise `BACKUP_VERSION` only for a change older
-versions would misread, and add a test in `tests/menus.test.mjs`.
+See [settings-page.md](references/settings-page.md) before changing external
+links, backup import/export, or the settings page's privileged file handling.
 
 The look follows Tab Groups' settings page (oom333/zen-tab-groups): cards,
 switches, a sticky preview on the right. Keep new UI in that style and in

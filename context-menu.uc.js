@@ -18,6 +18,10 @@
     .pop()
     .replace(/[?#].*$/, "");
   const SETTINGS_URL = new URL("context-menu/settings.html", SCRIPT_URL).href;
+  const SUPPORT_URLS = new Set([
+    "https://github.com/sinazadeh/zen-calmer-context-menu",
+    "https://github.com/sponsors/sinazadeh",
+  ]);
   const scope = {};
   Services.scriptloader.loadSubScript(
     new URL("context-menu/menus.js", SCRIPT_URL).href,
@@ -1190,6 +1194,17 @@
     gBrowser.selectedTab = existing ?? gBrowser.addTrustedTab(SETTINGS_URL);
   }
 
+  function openSupportPage(url) {
+    if (
+      !SUPPORT_URLS.has(url) ||
+      typeof window.openTrustedLinkIn !== "function"
+    ) {
+      return false;
+    }
+    window.openTrustedLinkIn(url, "tab", { relatedToCurrent: true });
+    return true;
+  }
+
   // "Customize Context Menus…" in the sidebar's and toolbars' menu, under
   // "Customize Toolbar…". It's a menu item like any other, so it can be
   // hidden too; the settings button in Sine still opens the page.
@@ -1355,6 +1370,7 @@
   // Used by the settings page.
   const api = {
     catalog,
+    openSupportPage,
     openSettings,
     unload,
     settingsURL: SETTINGS_URL,

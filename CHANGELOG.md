@@ -8,6 +8,13 @@ published as a GitHub release with its notes below (see
 
 ## [Unreleased]
 
+## [5.4.1] - 2026-10-24
+
+### Fixed
+
+- The GitHub project and sponsor links now open their destinations instead of
+  leaving an empty tab when clicked from the privileged settings page.
+
 ## [5.4.0] - 2026-10-24
 
 ### Added

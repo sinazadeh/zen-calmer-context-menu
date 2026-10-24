@@ -62,10 +62,16 @@ test("moved items return before Firefox cleans up extension items", async () => 
 });
 
 test("the settings page links to the project and its configured sponsor", async () => {
-  const settings = await read("context-menu/settings.html");
+  const [settings, pageScript, browserScript] = await Promise.all([
+    read("context-menu/settings.html"),
+    read("context-menu/settings.js"),
+    read("context-menu.uc.js"),
+  ]);
   assert.match(settings, new RegExp(`href="${theme.homepage}"`));
   assert.match(settings, /href="https:\/\/github\.com\/sponsors\/sinazadeh"/);
   assert.equal((settings.match(/rel="noopener noreferrer"/g) ?? []).length, 2);
+  assert.match(pageScript, /api\?\.openSupportPage\(link\.href\)/);
+  assert.match(browserScript, /window\.openTrustedLinkIn\(url, "tab"/);
 });
 
 test("the version matches the changelog and chrome.css", async () => {
