@@ -295,6 +295,7 @@
       moved: [],
       added: [],
       styled: [],
+      concealed: [],
       tooltips: [],
     };
     layouts.set(popup, layout);
@@ -330,6 +331,9 @@
     }
     for (const { el, parent, next } of layout.moved.reverse()) {
       parent.insertBefore(el, next?.parentNode === parent ? next : null);
+    }
+    for (const el of layout.concealed) {
+      el.hidden = false;
     }
     for (const { el, value, priority } of layout.styled) {
       if (value) {
@@ -501,9 +505,20 @@
     }
     popup.append(separator, more);
     layout.added.push(separator, more);
-    // In the order the menu shows them.
+    // In the order the menu shows them. Extension items are temporary. If an
+    // older copy of this script restored them after Firefox's popup cleanup,
+    // several identical nodes may already be present; move them all back for
+    // Firefox to remove, but show only the first copy in More options.
+    const seen = new Set();
     for (const el of layout.arrangedOrder.filter((el) => items.includes(el))) {
       moveItem(el, morePopup, layout);
+      const key = Z.canonicalKey(keyOf(el, root));
+      if (seen.has(key)) {
+        el.hidden = true;
+        layout.concealed.push(el);
+      } else {
+        seen.add(key);
+      }
     }
   }
 
@@ -1239,12 +1254,15 @@
 
     window.addEventListener("popupshowing", onPopupShowing);
     window.addEventListener("popupshown", onPopupShown);
-    window.addEventListener("popuphidden", onPopupHidden);
+    // Restore moved extension items in the capture phase, before Firefox's
+    // popuphidden handlers remove their temporary nodes. Restoring afterward
+    // leaks another copy into the next opening of the menu.
+    window.addEventListener("popuphidden", onPopupHidden, true);
     window.addEventListener("contextmenu", onContextMenu, true);
     cleanups.push(() => {
       window.removeEventListener("popupshowing", onPopupShowing);
       window.removeEventListener("popupshown", onPopupShown);
-      window.removeEventListener("popuphidden", onPopupHidden);
+      window.removeEventListener("popuphidden", onPopupHidden, true);
       window.removeEventListener("contextmenu", onContextMenu, true);
       for (const popup of [...states.keys()]) {
         restore(popup);

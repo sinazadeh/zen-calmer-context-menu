@@ -8,6 +8,14 @@ published as a GitHub release with its notes below (see
 
 ## [Unreleased]
 
+## [5.3.1] - 2026-10-24
+
+### Fixed
+
+- Extension items moved into **More options** no longer accumulate another
+  copy each time the menu opens. Existing duplicate nodes are hidden and
+  cleared the next time the menu closes.
+
 ## [5.3.0] - 2026-10-24
 
 ### Added

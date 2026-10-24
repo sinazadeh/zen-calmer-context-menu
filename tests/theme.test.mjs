@@ -49,6 +49,18 @@ test("the script runs in browser windows and can be switched off live", () => {
   assert.equal(theme.supportsUnload, true);
 });
 
+test("moved items return before Firefox cleans up extension items", async () => {
+  const script = await read("context-menu.uc.js");
+  assert.match(
+    script,
+    /addEventListener\("popuphidden", onPopupHidden, true\)/,
+  );
+  assert.match(
+    script,
+    /removeEventListener\("popuphidden", onPopupHidden, true\)/,
+  );
+});
+
 test("the version matches the changelog and chrome.css", async () => {
   const changelog = await read("CHANGELOG.md");
   const [, latest, date] = changelog.match(/^## \[(\d[^\]]*)\] - (\S+)/m);

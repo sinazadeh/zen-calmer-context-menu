@@ -20,6 +20,12 @@ native slots, and restores DOM positions and inline `order` values when the
 popup closes. "Only in some situations" is a presentation group rather than a
 real separator group, so its items are not draggable. Backups include `order`.
 
+`popuphidden` restoration runs in the capture phase. Firefox removes temporary
+extension menu nodes in its own close handlers, so folded extension items must
+be back in the root popup before those handlers run; restoring afterward leaks
+another copy on every opening. `foldItems()` also conceals duplicate keys in an
+already-affected window while returning every node for Firefox to clean up.
+
 ## Item keys
 
 `itemKey` in `menus.js` makes them: `#<id>`, or for items without an id
