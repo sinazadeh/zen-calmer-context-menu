@@ -12,6 +12,14 @@ records what menus show, and gives the settings page
 `context-menu/menus.js` holds what both share: the menus, sections, aliases,
 labels, item keys and separator logic.
 
+Custom top-level item order is saved in `uc.hidecontext.order`, an object from
+menu id to stable item keys. The settings page only lets an item be dragged
+inside its displayed group. At runtime the script rearranges only the slots
+occupied by saved items, leaves separators and new/unsaved items in their
+native slots, and restores DOM positions and inline `order` values when the
+popup closes. "Only in some situations" is a presentation group rather than a
+real separator group, so its items are not draggable. Backups include `order`.
+
 ## Item keys
 
 `itemKey` in `menus.js` makes them: `#<id>`, or for items without an id

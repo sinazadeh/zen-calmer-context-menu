@@ -8,6 +8,15 @@ published as a GitHub release with its notes below (see
 
 ## [Unreleased]
 
+## [5.3.0] - 2026-10-24
+
+### Added
+
+- Drag items within their existing settings-page groups to customize each
+  menu's order, with a per-menu **Reset order** button. Separators stay in
+  place, previews follow the custom order, and backups include it.
+- Search either the selected menu or every menu from the settings page.
+
 ## [5.2.0] - 2026-10-17
 
 ### Added

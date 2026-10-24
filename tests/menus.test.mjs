@@ -178,6 +178,41 @@ test("parseHidden ignores anything that isn't an item key", () => {
   assert.equal(Z.serializeHidden(new Set(["#b", "#a"])), '["#a","#b"]');
 });
 
+test("menu order keeps stable canonical keys and known menus only", () => {
+  const orders = Z.parseOrders(
+    JSON.stringify({
+      tabContextMenu: [
+        "#context_unpinTab",
+        "#context_pinTab",
+        3,
+        "#context_reloadTab",
+      ],
+      unknownMenu: ["#x"],
+    }),
+  );
+  assert.deepEqual(plain([...orders]), [
+    ["tabContextMenu", ["#context_pinTab", "#context_reloadTab"]],
+  ]);
+  assert.equal(
+    Z.serializeOrders(
+      new Map([
+        ["zenWorkspaceMoreActions", ["#b", "#a"]],
+        ["tabContextMenu", ["#c"]],
+      ]),
+    ),
+    '{"tabContextMenu":["#c"],"zenWorkspaceMoreActions":["#b","#a"]}',
+  );
+  assert.deepEqual(plain([...Z.parseOrders("not json")]), []);
+});
+
+test("custom order rearranges saved slots without moving new items", () => {
+  const rows = [{ key: "#a" }, { key: "#new" }, { key: "#b" }, { key: "#c" }];
+  assert.deepEqual(
+    plain(Z.orderByKeys(rows, ["#c", "#a", "#b"])).map(({ key }) => key),
+    ["#c", "#new", "#a", "#b"],
+  );
+});
+
 test("the old Hide options are turned into hidden items", () => {
   const on = new Set(["uc.hidecontext.reloadtab", "uc.hidecontext.pin"]);
   assert.deepEqual(plain(Z.legacyHiddenKeys((pref) => on.has(pref))), [
@@ -381,6 +416,46 @@ test("a backup keeps the folded items and the icon style", () => {
         [],
       ),
     /folded items is damaged/,
+  );
+});
+
+test("a backup keeps custom menu order", () => {
+  const text = Z.makeBackup(
+    [],
+    {},
+    new Date("2026-10-17T12:00:00Z"),
+    [],
+    new Map([["tabContextMenu", ["#context_reloadTab", "#context_pinTab"]]]),
+  );
+  assert.deepEqual(JSON.parse(text).order, {
+    tabContextMenu: ["#context_reloadTab", "#context_pinTab"],
+  });
+  const backup = Z.parseBackup(text, []);
+  assert.deepEqual(plain([...backup.orders]), [
+    ["tabContextMenu", ["#context_reloadTab", "#context_pinTab"]],
+  ]);
+
+  const old = Z.parseBackup(
+    JSON.stringify({
+      format: "calmer-context-menu-backup",
+      version: 1,
+      hidden: [],
+    }),
+    [],
+  );
+  assert.equal(old.orders.size, 0);
+  assert.throws(
+    () =>
+      Z.parseBackup(
+        JSON.stringify({
+          format: "calmer-context-menu-backup",
+          version: 1,
+          hidden: [],
+          order: { tabContextMenu: "#context_pinTab" },
+        }),
+        [],
+      ),
+    /menu order is damaged/,
   );
 });
 

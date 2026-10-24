@@ -49,9 +49,12 @@
   let hidden = new Set();
   // Items moved into "More options" (the settings page's fold buttons).
   let folded = new Set();
+  // Item keys in the order users chose on the settings page, by menu.
+  let orders = new Map();
   const readHidden = () => {
     hidden = Z.parseHidden(Services.prefs.getStringPref(Z.PREF_HIDDEN, "[]"));
     folded = Z.parseHidden(Services.prefs.getStringPref(Z.PREF_FOLDED, "[]"));
+    orders = Z.parseOrders(Services.prefs.getStringPref(Z.PREF_ORDER, "{}"));
   };
   const writeHidden = (keys) =>
     Services.prefs.setStringPref(Z.PREF_HIDDEN, Z.serializeHidden(keys));
@@ -291,9 +294,12 @@
       order: inShownOrder(popup),
       moved: [],
       added: [],
+      styled: [],
       tooltips: [],
     };
     layouts.set(popup, layout);
+    applyCustomOrder(popup, root, layout);
+    layout.arrangedOrder = inShownOrder(popup);
     if (
       root.id === "tabContextMenu" &&
       Services.prefs.getBoolPref("uc.fixcontext.tabactions", false)
@@ -325,8 +331,63 @@
     for (const { el, parent, next } of layout.moved.reverse()) {
       parent.insertBefore(el, next?.parentNode === parent ? next : null);
     }
+    for (const { el, value, priority } of layout.styled) {
+      if (value) {
+        el.style.setProperty("order", value, priority);
+      } else {
+        el.style.removeProperty("order");
+      }
+    }
     for (const el of layout.added) {
       el.remove();
+    }
+  }
+
+  // Reorder only the item slots inside each existing group. Separators stay
+  // exactly where Zen or Firefox put them, and unlisted/new items keep their
+  // native slots until the user drags them too.
+  function applyCustomOrder(popup, root, layout) {
+    const saved = orders.get(root.id);
+    if (!saved?.length) {
+      return;
+    }
+    const ranked = new Set(saved);
+    const def = Z.MENUS.find(({ id }) => id === root.id) ?? {};
+    const rows = layout.order.map((el) => {
+      if (isSeparator(el)) return { separator: true };
+      const key = keyOf(el, root);
+      return {
+        key: key && Z.canonicalKey(key),
+        extension: el.classList.contains("webextension-menuitem"),
+        el,
+      };
+    });
+    for (const group of Z.groupRows(def, rows)) {
+      const slots = group.rows.filter((row) => ranked.has(row.key));
+      const arranged = Z.orderByKeys(slots, saved);
+      if (slots.every((row, i) => row.el === arranged[i].el)) {
+        continue;
+      }
+      const places = slots.map(({ el }) => {
+        layout.moved.push({
+          el,
+          parent: el.parentElement,
+          next: el.nextSibling,
+        });
+        layout.styled.push({
+          el,
+          value: el.style.getPropertyValue("order"),
+          priority: el.style.getPropertyPriority("order"),
+        });
+        const marker = document.createComment("calmer-order");
+        const order = window.getComputedStyle(el).order;
+        el.before(marker);
+        return { marker, order };
+      });
+      arranged.forEach(({ el }, i) => {
+        places[i].marker.replaceWith(el);
+        el.style.setProperty("order", places[i].order, "important");
+      });
     }
   }
 
@@ -441,7 +502,7 @@
     popup.append(separator, more);
     layout.added.push(separator, more);
     // In the order the menu shows them.
-    for (const el of layout.order.filter((el) => items.includes(el))) {
+    for (const el of layout.arrangedOrder.filter((el) => items.includes(el))) {
       moveItem(el, morePopup, layout);
     }
   }
@@ -547,6 +608,9 @@
       apply(popup, root);
       if (popup === root) {
         rearrange(popup, root);
+        // Custom order, quick actions and More options can change which
+        // separators are at an edge or next to each other.
+        apply(popup, root);
       }
     } catch (ex) {
       log(ex);
@@ -1199,19 +1263,25 @@
     const prefObserver = {
       observe() {
         readHidden();
-        for (const popup of states.keys()) {
+        for (const popup of [...states.keys()]) {
           const root = rootMenuOf(popup);
           if (root) {
             apply(popup, root);
+            if (popup === root) {
+              rearrange(popup, root);
+              apply(popup, root);
+            }
           }
         }
       },
     };
     Services.prefs.addObserver(Z.PREF_HIDDEN, prefObserver);
     Services.prefs.addObserver(Z.PREF_FOLDED, prefObserver);
+    Services.prefs.addObserver(Z.PREF_ORDER, prefObserver);
     cleanups.push(() => {
       Services.prefs.removeObserver(Z.PREF_HIDDEN, prefObserver);
       Services.prefs.removeObserver(Z.PREF_FOLDED, prefObserver);
+      Services.prefs.removeObserver(Z.PREF_ORDER, prefObserver);
     });
 
     addMenuItem();

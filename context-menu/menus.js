@@ -681,9 +681,95 @@ var ZenContextMenuShared = (() => {
   /** The value saved for a set of hidden items. */
   const serializeHidden = (keys) => JSON.stringify([...keys].sort());
 
+  const ORDER_MAX_MENUS = MENUS.length;
+  const ORDER_MAX_ITEMS = 10000;
+  const ORDER_MAX_KEY_LENGTH = 1000;
+  const MENU_IDS = new Set(MENUS.map(({ id }) => id));
+
+  function ordersFrom(value, damaged = false) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) {
+      if (damaged) throw new Error("This backup's menu order is damaged.");
+      return new Map();
+    }
+    const entries = Object.entries(value);
+    if (entries.length > ORDER_MAX_MENUS) {
+      if (damaged) throw new Error("This backup's menu order is damaged.");
+      return new Map();
+    }
+    const orders = new Map();
+    for (const [menu, list] of entries) {
+      if (!MENU_IDS.has(menu)) {
+        continue;
+      }
+      if (!Array.isArray(list)) {
+        if (damaged) throw new Error("This backup's menu order is damaged.");
+        continue;
+      }
+      if (list.length > ORDER_MAX_ITEMS) {
+        if (damaged) throw new Error("This backup's menu order is damaged.");
+        continue;
+      }
+      const seen = new Set();
+      const keys = [];
+      for (const value of list) {
+        if (
+          typeof value !== "string" ||
+          !value.length ||
+          value.length > ORDER_MAX_KEY_LENGTH
+        ) {
+          continue;
+        }
+        const key = canonicalKey(value);
+        if (!seen.has(key)) {
+          seen.add(key);
+          keys.push(key);
+        }
+      }
+      if (keys.length) orders.set(menu, keys);
+    }
+    return orders;
+  }
+
+  /** Reads saved per-menu item order, ignoring malformed preference data. */
+  function parseOrders(text) {
+    try {
+      return ordersFrom(JSON.parse(text));
+    } catch {
+      return new Map();
+    }
+  }
+
+  /** The deterministic preference value for per-menu item order. */
+  function serializeOrders(orders) {
+    return JSON.stringify(
+      Object.fromEntries(
+        [...orders]
+          .filter(
+            ([menu, keys]) =>
+              MENU_IDS.has(menu) && Array.isArray(keys) && keys.length,
+          )
+          .sort(([a], [b]) => a.localeCompare(b)),
+      ),
+    );
+  }
+
+  /** Reorders saved values in their existing slots; unknown values stay put. */
+  function orderByKeys(values, savedKeys, keyOf = (value) => value.key) {
+    const rank = new Map(savedKeys.map((key, i) => [key, i]));
+    const result = [...values];
+    const slots = result
+      .map((value, i) => ({ value, i }))
+      .filter(({ value }) => rank.has(keyOf(value)));
+    const arranged = slots
+      .map(({ value }) => value)
+      .sort((a, b) => rank.get(keyOf(a)) - rank.get(keyOf(b)));
+    slots.forEach(({ i }, at) => (result[i] = arranged[at]));
+    return result;
+  }
+
   // A backup file (the settings page's Backup card): the hidden and folded
-  // items and the style options. `format` tells it apart from other JSON
-  // files; fields added later (`folded`) are ignored by versions before
+  // items, custom order and style options. `format` tells it apart from other
+  // JSON files; fields added later (`folded`, `order`) are ignored by versions before
   // them and missing from backups made before them. Raise
   // BACKUP_VERSION only when the shape changes in a way older versions would
   // misread, since they refuse newer backups.
@@ -702,15 +788,23 @@ var ZenContextMenuShared = (() => {
    *   preference
    * @param {Date} [date] when it was made
    * @param {Iterable<string>} [foldedKeys] items in "More options"
+   * @param {Map<string, Array<string>>} [orders] custom order by menu id
    * @returns {string}
    */
-  function makeBackup(hiddenKeys, options, date = new Date(), foldedKeys = []) {
+  function makeBackup(
+    hiddenKeys,
+    options,
+    date = new Date(),
+    foldedKeys = [],
+    orders = new Map(),
+  ) {
     const backup = {
       format: BACKUP_FORMAT,
       version: BACKUP_VERSION,
       exportedAt: date.toISOString(),
       hidden: [...hiddenKeys].sort(),
       folded: [...foldedKeys].sort(),
+      order: JSON.parse(serializeOrders(orders)),
       options: Object.fromEntries(Object.entries(options).sort()),
     };
     return `${JSON.stringify(backup, null, 2)}\n`;
@@ -726,7 +820,7 @@ var ZenContextMenuShared = (() => {
    * @param {Array<string>} optionPrefs the on/off preferences a backup may set
    * @param {Object<string, Array<string>>} [choices] the preferences with a
    *   value from a list a backup may set, and their values
-   * @returns {{hidden: Set<string>, folded: Set<string>, options: Map<string, boolean | string>}}
+   * @returns {{hidden: Set<string>, folded: Set<string>, orders: Map<string, Array<string>>, options: Map<string, boolean | string>}}
    * @throws {Error} saying why, for the user, if it can't be restored
    */
   function parseBackup(text, optionPrefs, choices = {}) {
@@ -775,6 +869,9 @@ var ZenContextMenuShared = (() => {
     const folded = Object.hasOwn(data, "folded")
       ? keys(data.folded, "folded")
       : new Set();
+    const orders = Object.hasOwn(data, "order")
+      ? ordersFrom(data.order, true)
+      : new Map();
     const values =
       data.options &&
       typeof data.options === "object" &&
@@ -792,7 +889,7 @@ var ZenContextMenuShared = (() => {
         options.set(pref, values[pref]);
       }
     }
-    return { hidden, folded, options };
+    return { hidden, folded, orders, options };
   }
 
   return Object.freeze({
@@ -809,6 +906,7 @@ var ZenContextMenuShared = (() => {
     conflictingOptions,
     PREF_HIDDEN: "uc.hidecontext.items",
     PREF_FOLDED: "uc.hidecontext.folded",
+    PREF_ORDER: "uc.hidecontext.order",
     widgetId,
     itemKey,
     canonicalKey,
@@ -819,6 +917,9 @@ var ZenContextMenuShared = (() => {
     legacyHiddenKeys,
     parseHidden,
     serializeHidden,
+    parseOrders,
+    serializeOrders,
+    orderByKeys,
     withoutSelection,
     BACKUP_MAX_LENGTH,
     makeBackup,

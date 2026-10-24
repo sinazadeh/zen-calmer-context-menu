@@ -176,6 +176,7 @@ input {
 }
 .menu-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   align-items: center;
 }
@@ -232,6 +233,10 @@ input {
 .button.subtle:hover:not(:disabled) {
   color: var(--text);
   border-color: var(--border);
+}
+.button.subtle.selected {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
 }
 
 /* ---------- suggestion ---------- */
@@ -303,12 +308,44 @@ button.group-head:hover h3 {
 
 .row-main {
   display: grid;
-  grid-template-columns: 18px minmax(0, 1fr) auto auto auto;
+  grid-template-columns: 18px 18px minmax(0, 1fr) auto auto auto;
   align-items: center;
   gap: 12px;
   padding: 8px 12px;
   cursor: pointer;
   background: var(--card);
+}
+
+.drag-handle {
+  width: 20px;
+  height: 28px;
+  margin: -5px 0 -5px -6px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  cursor: grab;
+  opacity: 0.45;
+}
+.drag-handle:hover,
+.drag-handle:focus-visible {
+  color: var(--text);
+  background: var(--hover);
+  opacity: 1;
+}
+.drag-handle[aria-disabled="true"] {
+  cursor: default;
+  opacity: 0.18;
+}
+.row.dragging {
+  opacity: 0.45;
+}
+.row.drag-before > .row-main {
+  box-shadow: inset 0 2px var(--accent);
+}
+.row.drag-after > .row-main {
+  box-shadow: inset 0 -2px var(--accent);
 }
 .row-main:hover,
 .row-main.highlight {
@@ -464,6 +501,9 @@ button.group-head:hover h3 {
   background: transparent;
   padding-left: 42px;
 }
+.children .drag-handle {
+  visibility: hidden;
+}
 .children .row + .row {
   border-top-color: transparent;
 }
@@ -482,6 +522,25 @@ button.group-head:hover h3 {
 
 .footnote {
   margin-top: 16px;
+}
+
+.search-menu-head {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  padding: 10px 2px 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.search-menu-head h3 {
+  margin: 0;
+  font-size: 15px;
+}
+.search-menu-head:hover h3 {
+  color: var(--accent);
 }
 
 /* ---------- switches ---------- */

@@ -47,8 +47,25 @@
                   placeholder="Find an option"
                   aria-label="Find an option"
                 />
+                <button
+                  id="search-all"
+                  class="button subtle"
+                  type="button"
+                  aria-pressed="false"
+                  title="Search every menu instead of only the selected menu"
+                >
+                  All menus
+                </button>
+                <button
+                  id="reset-order"
+                  class="button subtle"
+                  type="button"
+                  title="Restore this menu's default item order"
+                >
+                  Reset order
+                </button>
                 <button id="show-all" class="button subtle" type="button">
-                  Show all
+                  Show hidden
                 </button>
               </div>
             </div>
@@ -86,8 +103,9 @@
           <section class="card">
             <h2>Backup</h2>
             <p class="muted">
-              Save the options you've hidden and your appearance settings to a
-              file, to restore them later or in another profile.
+              Save the options you've hidden, moved or reordered and your
+              appearance settings to a file, to restore them later or in another
+              profile.
             </p>
             <div class="backup-actions">
               <button id="backup-export" class="button" type="button">

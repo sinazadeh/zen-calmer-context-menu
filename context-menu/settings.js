@@ -260,9 +260,13 @@ let lastSaved = Z.serializeHidden(hidden);
 // Items in "More options" (see foldItems in context-menu.uc.js).
 let folded = Z.parseHidden(prefs.getString(Z.PREF_FOLDED, "[]"));
 let lastSavedFolded = Z.serializeHidden(folded);
+let orders = Z.parseOrders(prefs.getString(Z.PREF_ORDER, "{}"));
+let lastSavedOrders = Z.serializeOrders(orders);
 let current = decodeURIComponent(location.hash.slice(1)) || "tabContextMenu";
 let context = null;
 let query = "";
+let searchAll = false;
+let dragging = null;
 // Submenus and "only in some situations" groups that are unfolded.
 const unfolded = new Set();
 
@@ -271,6 +275,8 @@ function save() {
   prefs.setString(Z.PREF_HIDDEN, lastSaved);
   lastSavedFolded = Z.serializeHidden(folded);
   prefs.setString(Z.PREF_FOLDED, lastSavedFolded);
+  lastSavedOrders = Z.serializeOrders(orders);
+  prefs.setString(Z.PREF_ORDER, lastSavedOrders);
 }
 
 const currentMenu = () =>
@@ -287,6 +293,31 @@ function* allRows(menu) {
 
 const hiddenCount = (menu) =>
   [...allRows(menu)].filter((row) => hidden.has(row.key)).length;
+
+function orderedRows(menuId, rows) {
+  const saved = orders.get(menuId);
+  if (!saved?.length) return [...rows];
+  return Z.orderByKeys(rows, saved);
+}
+
+function setGroupOrder(menu, group, dragged, target, after) {
+  const rows = orderedRows(menu.id, group.rows);
+  const from = rows.findIndex(({ key }) => key === dragged);
+  const over = rows.findIndex(({ key }) => key === target);
+  if (from < 0 || over < 0 || dragged === target) return;
+  const [row] = rows.splice(from, 1);
+  let to = rows.findIndex(({ key }) => key === target);
+  if (after) to++;
+  rows.splice(to, 0, row);
+
+  const groupKeys = new Set(group.rows.map(({ key }) => key));
+  const previous = (orders.get(menu.id) ?? []).filter(
+    (key) => !groupKeys.has(key),
+  );
+  orders.set(menu.id, [...previous, ...rows.map(({ key }) => key)]);
+  save();
+  render();
+}
 
 function setHidden(key, hide) {
   if (hide) {
@@ -321,6 +352,7 @@ function renderRow(
   parentOff = false,
   inRareGroup = false,
   inSubmenu = false,
+  drag = null,
 ) {
   const off = hidden.has(row.key);
   const isFolded = !inSubmenu && folded.has(row.key);
@@ -328,6 +360,49 @@ function renderRow(
     (child) => !query || matches(row) || matches(child),
   );
   const open = children.length > 0 && (unfolded.has(row.key) || !!query);
+  const canDrag =
+    !!drag &&
+    !query &&
+    !inRareGroup &&
+    !inSubmenu &&
+    drag.group.rows.length > 1;
+  const dragHandle = h(
+    "button",
+    {
+      type: "button",
+      class: "drag-handle",
+      draggable: canDrag ? "true" : null,
+      "aria-label": `Move “${row.label}”`,
+      "aria-disabled": String(!canDrag),
+      title: canDrag
+        ? "Drag to reorder within this group"
+        : query
+          ? "Clear the search to reorder items"
+          : inRareGroup
+            ? "Items shown only in some situations keep Zen's order"
+            : "This item can't be reordered here",
+      onclick: (event) => event.stopPropagation(),
+      ondragstart: (event) => {
+        if (!canDrag) {
+          event.preventDefault();
+          return;
+        }
+        dragging = { ...drag, key: row.key };
+        event.dataTransfer.effectAllowed = "move";
+        event.dataTransfer.setData("text/plain", row.key);
+        event.currentTarget.closest(".row").classList.add("dragging");
+      },
+      ondragend: () => {
+        dragging = null;
+        document
+          .querySelectorAll(".drag-before, .drag-after, .dragging")
+          .forEach((el) =>
+            el.classList.remove("drag-before", "drag-after", "dragging"),
+          );
+      },
+    },
+    h("span", { "aria-hidden": "true" }, "⠿"),
+  );
   const toggle = h("input", {
     type: "checkbox",
     class: "switch",
@@ -351,6 +426,7 @@ function renderRow(
       onmouseenter: () => highlight(row.key, true),
       onmouseleave: () => highlight(row.key, false),
     },
+    dragHandle,
     h("span", { class: "row-icon" }, icon(row.icon)),
     h(
       "span",
@@ -413,6 +489,43 @@ function renderRow(
       class: `row${off ? " off" : ""}${off && open ? " parent-off" : ""}${
         row.situational && !inRareGroup ? " rare" : ""
       }${isFolded && !off ? " folded" : ""}`,
+      ondragover: (event) => {
+        if (
+          !dragging ||
+          dragging.group !== drag?.group ||
+          dragging.key === row.key
+        ) {
+          return;
+        }
+        event.preventDefault();
+        event.dataTransfer.dropEffect = "move";
+        const item = event.currentTarget;
+        const after =
+          event.clientY >
+          item.getBoundingClientRect().top + item.offsetHeight / 2;
+        item.classList.toggle("drag-before", !after);
+        item.classList.toggle("drag-after", after);
+      },
+      ondragleave: (event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) {
+          event.currentTarget.classList.remove("drag-before", "drag-after");
+        }
+      },
+      ondrop: (event) => {
+        if (
+          !dragging ||
+          dragging.group !== drag?.group ||
+          dragging.key === row.key
+        ) {
+          return;
+        }
+        event.preventDefault();
+        const item = event.currentTarget;
+        const after = item.classList.contains("drag-after");
+        const { menu, group, key } = dragging;
+        dragging = null;
+        setGroupOrder(menu, group, key, row.key, after);
+      },
       title:
         row.situational && !inRareGroup
           ? "Zen hasn't shown this item yet. It's only in some situations, or not used in Zen."
@@ -431,11 +544,11 @@ function renderRow(
   );
 }
 
-function renderGroups(menu) {
+function menuGroups(menu, showMenuName) {
   const groups = [];
   let shownRows = 0;
   for (const group of menu.groups) {
-    const rows = group.rows.filter(
+    const rows = orderedRows(menu.id, group.rows).filter(
       (row) => matches(row) || row.children.some(matches),
     );
     if (!rows.length) {
@@ -482,16 +595,49 @@ function renderGroups(menu) {
           : h(
               "ul",
               { class: "rows" },
-              rows.map((row) => renderRow(row, false, !!group.rare)),
+              rows.map((row) =>
+                renderRow(row, false, !!group.rare, false, { menu, group }),
+              ),
             ),
       ),
     );
   }
-  document.getElementById("groups").replaceChildren(...groups);
+  if (showMenuName && shownRows) {
+    groups.unshift(
+      h(
+        "button",
+        {
+          type: "button",
+          class: "search-menu-head",
+          onclick: () => {
+            current = menu.id;
+            searchAll = false;
+            context = null;
+            history.replaceState(null, "", `#${encodeURIComponent(menu.id)}`);
+            render();
+          },
+        },
+        h("h3", {}, menu.name),
+        h("span", { class: "muted small" }, menu.hint),
+      ),
+    );
+  }
+  return { groups, shownRows };
+}
+
+function renderGroups(menu) {
+  const everywhere = searchAll && !!query;
+  const results = (everywhere ? catalog.menus : [menu]).map((candidate) =>
+    menuGroups(candidate, everywhere),
+  );
+  document
+    .getElementById("groups")
+    .replaceChildren(...results.flatMap(({ groups }) => groups));
+  const shownRows = results.reduce((sum, result) => sum + result.shownRows, 0);
   const noMatch = document.getElementById("no-match");
   noMatch.hidden = shownRows > 0;
   noMatch.textContent = query
-    ? `Nothing in this menu matches “${query}”.`
+    ? `Nothing in ${everywhere ? "any menu" : "this menu"} matches “${query}”.`
     : "Zen hasn't shown this menu yet.";
 }
 
@@ -539,7 +685,7 @@ function previewSource(menu) {
     if (entries.length) {
       entries.push({ separator: true });
     }
-    for (const row of group.rows) {
+    for (const row of orderedRows(menu.id, group.rows)) {
       entries.push({
         key: row.key,
         label: row.label,
@@ -549,6 +695,25 @@ function previewSource(menu) {
     }
   }
   return { context: null, at: null, entries };
+}
+
+function orderedPreviewEntries(menu, source) {
+  const result = source.map((entry) => ({
+    ...entry,
+    key: entry.key && Z.canonicalKey(entry.key),
+  }));
+  for (const group of menu.groups) {
+    const keys = new Set(group.rows.map(({ key }) => key));
+    const slots = result
+      .map((entry, i) => ({ entry, i }))
+      .filter(({ entry }) => entry.key && keys.has(entry.key));
+    const arranged = orderedRows(
+      menu.id,
+      slots.map(({ entry }) => entry),
+    );
+    slots.forEach(({ i }, at) => (result[i] = arranged[at]));
+  }
+  return result;
 }
 
 function renderPreview() {
@@ -597,9 +762,8 @@ function renderPreview() {
     );
   }
 
-  const all = source.entries.map((entry) => ({
+  const all = orderedPreviewEntries(menu, source.entries).map((entry) => ({
     ...entry,
-    key: entry.key && Z.canonicalKey(entry.key),
     visible: entry.separator || !hidden.has(Z.canonicalKey(entry.key)),
   }));
   // Folded items go into "More options", at the end.
@@ -838,11 +1002,11 @@ async function exportBackup() {
       (option) => [option.pref, optionValue(option)],
     ),
   ]);
-  const text = Z.makeBackup(hidden, options, new Date(), folded);
+  const text = Z.makeBackup(hidden, options, new Date(), folded, orders);
   const name = backupName();
   const exported = `${plural(hidden.size, "hidden item")}${
     folded.size ? `, ${plural(folded.size, "folded item")}` : ""
-  } and the appearance settings`;
+  }${orders.size ? `, custom order for ${plural(orders.size, "menu")}` : ""} and the appearance settings`;
   if (!inZen) {
     // The sample page, in an ordinary tab: a download.
     const url = URL.createObjectURL(
@@ -888,7 +1052,9 @@ async function importBackup(file) {
         backup.folded.size
           ? `, moves ${plural(backup.folded.size, "item")} to “More options”`
           : ""
-      }${backup.options.size ? " and sets the appearance options" : ""}.`,
+      }${backup.orders.size ? `, restores custom order for ${plural(backup.orders.size, "menu")}` : ""}${
+        backup.options.size ? " and sets the appearance options" : ""
+      }.`,
       "Import",
     ))
   ) {
@@ -896,6 +1062,7 @@ async function importBackup(file) {
   }
   hidden = backup.hidden;
   folded = backup.folded;
+  orders = backup.orders;
   save();
   // At most one of each group of alternatives (an older backup can have
   // two), and the ones switched off first.
@@ -919,7 +1086,9 @@ async function importBackup(file) {
   backupStatus(
     `Imported ${plural(hidden.size, "hidden item")}${
       folded.size ? `, ${plural(folded.size, "folded item")}` : ""
-    }${backup.options.size ? " and the appearance settings" : ""}.`,
+    }${orders.size ? `, custom order for ${plural(orders.size, "menu")}` : ""}${
+      backup.options.size ? " and the appearance settings" : ""
+    }.`,
   );
 }
 
@@ -948,6 +1117,11 @@ function render({ focusKey } = {}) {
   document.getElementById("menu-hint").textContent = menu?.hint ?? "";
   document.getElementById("show-all").disabled =
     !menu || hiddenCount(menu) === 0;
+  const searchEverywhere = document.getElementById("search-all");
+  searchEverywhere.setAttribute("aria-pressed", String(searchAll));
+  searchEverywhere.classList.toggle("selected", searchAll);
+  document.getElementById("reset-order").disabled =
+    !menu || !orders.has(menu.id) || (searchAll && !!query);
   document.getElementById("suggest").hidden =
     hidden.size > 0 || !catalog.menus.length;
   if (menu) {
@@ -981,6 +1155,8 @@ function loadSample() {
     SAMPLE_PREFS.set(Z.PREF_HIDDEN, JSON.stringify(sample.hidden ?? []));
     hidden = Z.parseHidden(prefs.getString(Z.PREF_HIDDEN, "[]"));
     lastSaved = Z.serializeHidden(hidden);
+    orders = Z.parseOrders(prefs.getString(Z.PREF_ORDER, "{}"));
+    lastSavedOrders = Z.serializeOrders(orders);
     catalog = sample;
     render();
   });
@@ -990,6 +1166,27 @@ function loadSample() {
 document.getElementById("filter").addEventListener("input", (e) => {
   query = e.target.value.trim().toLowerCase();
   render();
+});
+
+document.getElementById("search-all").addEventListener("click", () => {
+  searchAll = !searchAll;
+  render();
+});
+
+document.getElementById("reset-order").addEventListener("click", async () => {
+  const menu = currentMenu();
+  if (
+    menu &&
+    orders.has(menu.id) &&
+    (await ask(
+      `Restore the default item order in the ${menu.name} menu? Hidden items and More options won't change.`,
+      "Reset order",
+    ))
+  ) {
+    orders.delete(menu.id);
+    save();
+    render();
+  }
 });
 
 document.getElementById("show-all").addEventListener("click", async () => {
@@ -1030,6 +1227,12 @@ prefs.observe(
       if (prefs.getString(Z.PREF_FOLDED, "[]") !== lastSavedFolded) {
         folded = Z.parseHidden(prefs.getString(Z.PREF_FOLDED, "[]"));
         lastSavedFolded = Z.serializeHidden(folded);
+        render();
+      }
+    } else if (name === Z.PREF_ORDER) {
+      if (prefs.getString(Z.PREF_ORDER, "{}") !== lastSavedOrders) {
+        orders = Z.parseOrders(prefs.getString(Z.PREF_ORDER, "{}"));
+        lastSavedOrders = Z.serializeOrders(orders);
         render();
       }
     } else {
