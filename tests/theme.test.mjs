@@ -61,6 +61,13 @@ test("moved items return before Firefox cleans up extension items", async () => 
   );
 });
 
+test("the settings page links to the project and its configured sponsor", async () => {
+  const settings = await read("context-menu/settings.html");
+  assert.match(settings, new RegExp(`href="${theme.homepage}"`));
+  assert.match(settings, /href="https:\/\/github\.com\/sponsors\/sinazadeh"/);
+  assert.equal((settings.match(/rel="noopener noreferrer"/g) ?? []).length, 2);
+});
+
 test("the version matches the changelog and chrome.css", async () => {
   const changelog = await read("CHANGELOG.md");
   const [, latest, date] = changelog.match(/^## \[(\d[^\]]*)\] - (\S+)/m);

@@ -8,6 +8,11 @@ published as a GitHub release with its notes below (see
 
 ## [Unreleased]
 
+### Added
+
+- Links below the settings-page introduction to star the project on GitHub or
+  sponsor its continued development.
+
 ## [5.3.1] - 2026-10-24
 
 ### Fixed

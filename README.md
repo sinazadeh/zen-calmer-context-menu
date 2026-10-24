@@ -91,6 +91,8 @@ A few things to know:
 
 If an item can't be hidden or an option stops doing anything after a Zen update, please [open an issue](https://github.com/sinazadeh/zen-calmer-context-menu/issues) with your Zen version (`about:support`) and the item or option's name.
 
+Finding this useful? [Star the project](https://github.com/sinazadeh/zen-calmer-context-menu) or [sponsor its continued development](https://github.com/sponsors/sinazadeh).
+
 ## Development
 
 There's no build step for the mod itself. `context-menu.uc.js` hides items as menus open, moves them into the quick actions and **More options**, and records what menus show; `context-menu/` holds the settings page and the code it shares with the script, and `context-menu/icons/` the Fluent and ZenUI icon styles (their style sheets are generated from `chrome.css` and `packs.json` by `node scripts/build_icon_packs.mjs`); `chrome.css` holds the style options, `preferences.json` lists them and `theme.json` is the manifest Sine reads. Every week, CI checks that everything `chrome.css` points at still exists in the latest Zen and opens the real menus in it with each option on and with items hidden. See [CONTRIBUTING.md](CONTRIBUTING.md) for the checks to run and [AGENTS.md](AGENTS.md) for how the mod is put together and how to keep it working when Zen changes.
