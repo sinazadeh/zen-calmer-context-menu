@@ -3,6 +3,8 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import vm from "node:vm";
 
+import { extractPrefs } from "../scripts/css_targets.mjs";
+
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 // context-menu/menus.js is a plain script shared by the browser window and
@@ -11,7 +13,6 @@ const Z = vm.runInNewContext(
   `${await read("context-menu/menus.js")}\nZenContextMenuShared;`,
   {},
 );
-const preferences = JSON.parse(await read("preferences.json"));
 const css = await read("chrome.css");
 // Arrays from another context don't deepEqual this one's.
 const plain = (value) => JSON.parse(JSON.stringify(value));
@@ -223,31 +224,29 @@ test("the old Hide options are turned into hidden items", () => {
   ]);
 });
 
-test("the old Hide options are gone from preferences.json and chrome.css", () => {
-  // Otherwise they'd be migrated away while still shown as options.
-  const options = new Set(preferences.map(({ property }) => property));
+test("the old Hide options are gone from chrome.css", () => {
   for (const pref of Object.keys(Z.LEGACY_PREFS)) {
-    assert.ok(!options.has(pref), `${pref} is still an option`);
     assert.ok(!css.includes(`"${pref}"`), `${pref} is still in chrome.css`);
   }
 });
 
-test("DEFAULT_ON lists the options that are on by default", () => {
-  const defaults = preferences
-    .filter(
-      (pref) => pref.property.startsWith("uc.") && pref.defaultValue === true,
-    )
-    .map((pref) => pref.property)
-    .sort();
-  assert.deepEqual(plain(Z.DEFAULT_ON).sort(), defaults);
+test("DEFAULT_ON keeps the intended style defaults", () => {
+  assert.deepEqual(plain(Z.DEFAULT_ON), [
+    "uc.fixcontext.ergonomicsfortabs",
+    "uc.hidecontext.copylink",
+  ]);
 });
 
-test("the settings page shows every option of preferences.json", async () => {
+test("the settings page shows every style option", async () => {
   const settings = await read("context-menu/settings.js");
-  const shown = [...settings.matchAll(/pref: "([^"]+)"/g)]
-    .map((m) => m[1])
-    .sort();
-  assert.deepEqual(shown, preferences.map(({ property }) => property).sort());
+  const shown = new Set(
+    [...settings.matchAll(/pref: "([^"]+)"/g)].map((match) => match[1]),
+  );
+  for (const pref of extractPrefs(css)) {
+    assert.ok(shown.has(pref), pref);
+  }
+  assert.ok(shown.has(Z.PREF_ICON_PACK));
+  assert.ok(shown.has("widget.macos.native-context-menus"));
 });
 
 test("menus and sections are listed once", () => {
@@ -479,8 +478,6 @@ test("alternative options: the first of a group that's on wins", () => {
   );
   for (const group of Z.EXCLUSIVE_OPTIONS) {
     for (const pref of group) {
-      const option = preferences.find((p) => p.property === pref);
-      assert.equal(option?.type, "checkbox", pref);
       // One that's on by default would switch the others off on its own.
       assert.ok(!Z.DEFAULT_ON.includes(pref), pref);
     }

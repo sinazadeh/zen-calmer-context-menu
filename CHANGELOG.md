@@ -8,6 +8,13 @@ published as a GitHub release with its notes below (see
 
 ## [Unreleased]
 
+## [5.4.2] - 2026-10-28
+
+### Changed
+
+- Sine's gear continues to open the mod's settings page, but Sine no longer
+  also shows a duplicate list of appearance controls.
+
 ## [5.4.1] - 2026-10-24
 
 ### Fixed

@@ -65,7 +65,7 @@ const isMac = inZen
 
 /* ---------- options ---------- */
 
-// The style options of chrome.css (see preferences.json), each one row:
+// The style options of chrome.css, each one row on this settings page:
 // - a switch: `pref`;
 // - a choice of values for one preference: `pref` and `choices` with ids;
 // - a choice between alternatives (Z.EXCLUSIVE_OPTIONS): `choices`, each

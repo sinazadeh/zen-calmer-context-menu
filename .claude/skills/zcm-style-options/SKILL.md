@@ -5,9 +5,11 @@ description: Rules for chrome.css, the style options (reorder the tab menu, icon
 
 # The style options (chrome.css)
 
-Every option is a boolean preference read with `@media -moz-pref("...")` and
-listed in `preferences.json` (Zen theme store format). Hiding single items
-is the item list's job (`zcm-item-list`); don't add options for it.
+Every option is a preference read with `@media -moz-pref("...")` and shown
+on the mod's settings page. `preferences.json` deliberately stays `[]`: Sine
+uses its presence to show a gear, and the script redirects that gear to the
+settings page without Sine also rendering duplicate controls. Hiding single
+items is the item list's job (`zcm-item-list`); don't add options for it.
 
 ## Conventions
 
@@ -26,13 +28,11 @@ is the item list's job (`zcm-item-list`); don't add options for it.
 ## Adding an option
 
 1. A `@media -moz-pref("uc.fixcontext.<name>")` block in `chrome.css`.
-2. An entry in `preferences.json` (`"type": "checkbox"`, a label in the
-   style of its neighbors) and in `OPTIONS` in `context-menu/settings.js`
-   (title and one sentence). `tests/menus.test.mjs` checks the lists match.
-3. On by default: `"defaultValue": true` (a boolean), "(enabled by
-   default)" at the end of the label, and the pref in `DEFAULT_ON` in
-   `menus.js`. The script sets those on the default branch at startup, since
-   Sine applies `defaultValue`s only once its options box is opened.
+2. An entry in `OPTIONS` in `context-menu/settings.js` (title and one
+   sentence). `tests/menus.test.mjs` checks that every CSS preference is
+   represented there. Keep `preferences.json` empty.
+3. On by default: add the pref to `DEFAULT_ON` in `menus.js`. The script
+   sets those on the default branch at startup.
 4. README list and a `CHANGELOG.md` entry.
 
 **Never rename a preference**: the names are shared with the theme store
@@ -98,9 +98,8 @@ icons) take `needs` on the settings page, which dims them otherwise.
 
 ## Icon styles
 
-`uc.fixcontext.iconpack` (a string: `zen`, `fluent`, `zenui`; a
-`"dropdown"` in `preferences.json` with `"placeholder": false`) picks the
-icons of "Icons for every option" and the quick actions. Zen's are
+`uc.fixcontext.iconpack` (a string: `zen`, `fluent`, `zenui`; a choice on the
+settings page) picks the icons of "Icons for every option" and the quick actions. Zen's are
 `chrome.css`'s. Fluent and ZenUI come from Context Menu Icons by
 Starry-AXQG (MIT; keep `context-menu/icons/LICENSE` and the README credit):
 

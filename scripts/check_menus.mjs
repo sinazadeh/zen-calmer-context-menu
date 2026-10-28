@@ -178,21 +178,20 @@ async function openMenus(marionette, pageUrl) {
 async function main() {
   const args = parseArgs();
   const css = await readFile(new URL("chrome.css", ROOT), "utf8");
-  const preferences = JSON.parse(
-    await readFile(new URL("preferences.json", ROOT), "utf8"),
-  );
-  // The on/off options (the icon style is a dropdown, whose icons the unit
-  // tests check).
-  const options = preferences
-    .filter(({ type }) => type === "checkbox")
-    .map(({ property }) => property)
-    .filter((property) => property.startsWith("uc."));
-  const defaults = Object.fromEntries(
-    preferences
-      .filter(({ defaultValue }) => defaultValue === true)
-      .map(({ property }) => [property, true]),
+  const shared = vm.runInNewContext(
+    `${await readFile(new URL("context-menu/menus.js", ROOT), "utf8")}; ZenContextMenuShared`,
+    {},
   );
   const blocks = extractOptionBlocks(css);
+  // preferences.json is deliberately empty so Sine shows its gear without a
+  // second options UI. Discover the boolean style options from chrome.css;
+  // the icon style string is covered by the icon-pack unit tests.
+  const options = [...blocks.keys()].filter((property) =>
+    property.startsWith("uc."),
+  );
+  const defaults = Object.fromEntries(
+    Array.from(shared.DEFAULT_ON, (property) => [property, true]),
+  );
   const only = args.only ? new Set(args.only.split(",")) : null;
   // Options that change how menus look rather than hiding items.
   const appearanceOptions = new Set([

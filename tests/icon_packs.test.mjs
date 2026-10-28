@@ -9,10 +9,13 @@ import {
   ICON_PACK_PREF,
 } from "../scripts/build_icon_packs.mjs";
 
-const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
+const read = async (path) =>
+  (await readFile(new URL(`../${path}`, import.meta.url), "utf8")).replaceAll(
+    "\r\n",
+    "\n",
+  );
 const css = await read("chrome.css");
 const packs = JSON.parse(await read("context-menu/icons/packs.json"));
-const preferences = JSON.parse(await read("preferences.json"));
 const Z = vm.runInNewContext(
   `${await read("context-menu/menus.js")}; ZenContextMenuShared`,
   {},
@@ -30,19 +33,13 @@ test("the icon styles' style sheets are up to date", async () => {
 });
 
 test("the icon styles are the same everywhere", () => {
-  // menus.js (the script and the settings page), preferences.json (Sine's
-  // options box) and packs.json; Zen's is chrome.css's own.
+  // menus.js (the script and settings page) and packs.json; Zen's is
+  // chrome.css's own.
   // (Array.from: menus.js runs in its own realm.)
   const listed = Array.from(Z.ICON_PACKS, ({ id }) => id);
   assert.equal(listed[0], "zen");
   assert.deepEqual(listed.slice(1), Object.keys(packs));
   assert.equal(Z.PREF_ICON_PACK, ICON_PACK_PREF);
-  const pref = preferences.find((p) => p.property === ICON_PACK_PREF);
-  assert.deepEqual(
-    pref.options.map(({ value }) => value),
-    listed,
-  );
-  assert.equal(pref.defaultValue, "zen");
 });
 
 test("packs.json maps chrome.css's icons and items", () => {

@@ -17,11 +17,10 @@ Check, citing the rule for each finding:
 1. Selectors match by id or class, never by position.
 2. Overriding declarations are `!important`; every rule sits inside its
    option's `@media -moz-pref()` block, with a comment naming the items.
-3. A new option is in `preferences.json`, in `OPTIONS` in
-   `context-menu/settings.js`, and, if on by default, in `DEFAULT_ON` with a
-   boolean `defaultValue` and "(enabled by default)" in its label. A choice
-   between values is one string preference (a `"dropdown"` with
-   `"placeholder": false`), not several switches.
+3. `preferences.json` remains empty; a new option is in `OPTIONS` in
+   `context-menu/settings.js`, and, if on by default, in `DEFAULT_ON`. A
+   choice between values is one string preference with choices on the
+   settings page, not several switches.
 4. No preference was renamed or removed without a migration.
 5. An option that restyles what another one does (icons, separators, menu
    color...) is an alternative: in `EXCLUSIVE_OPTIONS`, one choice on the

@@ -408,8 +408,8 @@ var ZenContextMenuShared = (() => {
   ];
 
   /**
-   * Options of chrome.css that are on unless switched off (their
-   * defaultValue in preferences.json).
+   * Options of chrome.css that are on unless switched off. The script sets
+   * these because Sine's preferences file is intentionally empty.
    */
   const DEFAULT_ON = [
     "uc.fixcontext.ergonomicsfortabs",

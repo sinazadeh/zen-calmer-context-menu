@@ -22,7 +22,7 @@ jobs:
         with:
           node-version: 22
 
-      # preferences.json <-> chrome.css consistency, CSS conventions and the
+      # The empty Sine preferences file, CSS conventions and the
       # selector helpers. Opening real menus still needs the manual checks in
       # AGENTS.md.
       - name: Run tests

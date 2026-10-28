@@ -62,11 +62,11 @@ Updating from version 4 works the same way: update the mod in Sine (with JS from
 3. For the style options, copy `chrome.css` into the `chrome` folder and add `@import "chrome.css";` at the top of `chrome/userChrome.css` (create it if needed), and set `toolkit.legacyUserProfileCustomizations.stylesheets` to `true` in `about:config`.
 4. In `about:support`, click **Clear startup cache…**, then restart Zen.
 
-Without fx-autoconfig, `chrome.css` on its own still gives you the style options (turn them on in `about:config`, using the names in [`preferences.json`](preferences.json)), but not hiding items.
+Without fx-autoconfig, `chrome.css` on its own still gives you the style options (turn their `uc.fixcontext.*` and `uc.hidecontext.*` preferences on in `about:config`), but not hiding items.
 
 ### macOS
 
-macOS draws its own context menus, which mods can't restyle. Hiding items works with them too, but the style options need Zen's menus: uncheck the first option in Sine's options for the mod (or set `widget.macos.native-context-menus` to `false` in `about:config`), and turn it back on before removing the mod. The settings page has the same switch under **Appearance**.
+macOS draws its own context menus, which mods can't restyle. Hiding items works with them too, but the style options need Zen's menus: turn on **Zen's own menus on macOS** under **Appearance** on the settings page (or set `widget.macos.native-context-menus` to `false` in `about:config`), and turn native menus back on before removing the mod.
 
 ## Settings
 
@@ -84,7 +84,7 @@ A few things to know:
 - Items Zen hasn't shown yet are greyed out; in the tab menu they're under **Only in some situations** (pinned tabs, several selected tabs, or Firefox features Zen doesn't use).
 - **Customize Context Menus…** is a menu item like any other, so you can hide it too; Sine's gear button still opens the page.
 - **More** next to an item (shown when you point at it) moves it into **More options** at the end of its menu; click **In More options** to put it back. The preview shows where it went. Holding <kbd>Shift</kbd> while right-clicking shows the whole menu, for the menus Zen's own interface opens (tabs, sidebar, toolbars, bookmarks); a page's menu is opened by the page's process, which doesn't tell.
-- **Icons**, **Separators** and **Menu color** are one choice each: in Sine's options and `about:config` they're separate switches (shared with the theme store version), and switching one on switches its alternative off. With `chrome.css` alone, hiding icons or separators wins over restoring or fading them, and the accent color over the gradient.
+- **Icons**, **Separators** and **Menu color** are one choice each on the settings page. Their underlying `about:config` preferences stay separate (shared with the theme store version), and switching one on switches its alternative off. With `chrome.css` alone, hiding icons or separators wins over restoring or fading them, and the accent color over the gradient.
 - **Icon style** picks Zen's icons, Fluent or ZenUI for restored icons and the quick actions; the list shows the picked style's icons. It's dimmed while neither is on, and so is **Gray extension icons** with no icons.
 - **Backup** saves the items you've hidden or moved to **More options**, your custom item order and your **Appearance** settings to a file (**Export settings…**), and puts them back from one (**Import settings…**), for instance in another profile or after reinstalling. Importing replaces your current choices, after asking. The macOS switch isn't included, since it's Zen's own setting.
 - The hidden items are saved in `uc.hidecontext.items`, the ones in **More options** in `uc.hidecontext.folded`, and custom order in `uc.hidecontext.order` (JSON in `about:config`); the style options use `uc.hidecontext.*` and `uc.fixcontext.*` switches, and the icon style is in `uc.fixcontext.iconpack` (`zen`, `fluent` or `zenui`). What the menus showed, for the list and the preview, is kept in `zen-context-menu.json` in your profile folder.
@@ -95,7 +95,7 @@ Finding this useful? [Star the project](https://github.com/sinazadeh/zen-calmer-
 
 ## Development
 
-There's no build step for the mod itself. `context-menu.uc.js` hides items as menus open, moves them into the quick actions and **More options**, and records what menus show; `context-menu/` holds the settings page and the code it shares with the script, and `context-menu/icons/` the Fluent and ZenUI icon styles (their style sheets are generated from `chrome.css` and `packs.json` by `node scripts/build_icon_packs.mjs`); `chrome.css` holds the style options, `preferences.json` lists them and `theme.json` is the manifest Sine reads. Every week, CI checks that everything `chrome.css` points at still exists in the latest Zen and opens the real menus in it with each option on and with items hidden. See [CONTRIBUTING.md](CONTRIBUTING.md) for the checks to run and [AGENTS.md](AGENTS.md) for how the mod is put together and how to keep it working when Zen changes.
+There's no build step for the mod itself. `context-menu.uc.js` hides items as menus open, moves them into the quick actions and **More options**, and records what menus show; `context-menu/` holds the settings page and the code it shares with the script, and `context-menu/icons/` the Fluent and ZenUI icon styles (their style sheets are generated from `chrome.css` and `packs.json` by `node scripts/build_icon_packs.mjs`); `chrome.css` holds the style options, while the empty `preferences.json` makes Sine show its gear without duplicating those controls. `theme.json` is the manifest Sine reads. Every week, CI checks that everything `chrome.css` points at still exists in the latest Zen and opens the real menus in it with each option on and with items hidden. See [CONTRIBUTING.md](CONTRIBUTING.md) for the checks to run and [AGENTS.md](AGENTS.md) for how the mod is put together and how to keep it working when Zen changes.
 
 ## Credits and license
 

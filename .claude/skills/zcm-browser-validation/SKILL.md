@@ -45,9 +45,8 @@ sources allowed, or fx-autoconfig. Then, as the change needs:
 - **More options**: fold items from the settings page (the preview shows
   them at the end), open the menu and its "More options", Shift+right-click
   a tab for the whole menu; the next plain right-click folds again.
-- **Alternatives**: in Sine's options box, switch one of a pair on (restore
-  and hide icons, faint and no separators, gradient and color) and check the
-  other went off after reopening it.
+- **Alternatives**: on the settings page, switch among icons, separators and
+  menu colors and confirm only the selected appearance remains active.
 - **Sine**: switch the mod off (everything shows again, no restart) and back
   on; update from the previous version (old "Hide ..." options migrate).
 

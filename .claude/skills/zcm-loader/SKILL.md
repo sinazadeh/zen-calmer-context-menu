@@ -24,15 +24,18 @@ description: How Sine and fx-autoconfig load Zen Calmer Context Menu - theme.jso
   "Enable installing JS from unofficial sources" on (`sine.allow-unsafe-js`);
   without it only the style options work.
 - Sine picks `chrome.css` and `preferences.json` by file name and treats a
-  repository with more than one `theme.json` as a collection of mods. Don't
-  add other files with those names; `tests/theme.test.mjs` checks.
+  repository with more than one `theme.json` as a collection of mods. The
+  preferences file deliberately contains `[]`: its presence supplies the
+  gear, while its emptiness prevents Sine duplicating the settings page's
+  controls. Don't add other files with those names; `tests/theme.test.mjs`
+  checks.
 - Sine offers an update when `updatedAt` is newer than the installed
   copy's, not when `version` is, so bump both with every release
   (`zcm-release`). It's a full UTC timestamp: 5.1.0 kept 5.0.0's date and
   copies of 5.0.0 weren't offered it.
-- Sine applies `preferences.json`'s `defaultValue`s only when its options
-  box is first opened; the script sets `DEFAULT_ON` prefs on the default
-  branch instead, so they apply at once and vanish with the mod.
+- The script sets `DEFAULT_ON` prefs on the default branch, so defaults apply
+  at once and vanish with the mod; the empty preferences file has no
+  `defaultValue`s for Sine to apply.
 
 ## Live unload
 

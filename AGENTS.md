@@ -23,8 +23,9 @@ It has two parts, with no build step:
   `uc.hidecontext.folded` into "More options", and builds the tab menu's
   quick actions.
 - **The style options**: `chrome.css`, preferences read with
-  `@media -moz-pref("...")` and listed in `preferences.json`; the icon
-  styles' style sheets in `context-menu/icons/`, which the script loads.
+  `@media -moz-pref("...")` and shown on the settings page; the empty
+  `preferences.json` keeps Sine's gear without duplicate controls. The icon
+  styles' style sheets are in `context-menu/icons/`, which the script loads.
 
 Users install it with [Sine](https://github.com/CosmoCreeper/Sine) (which
 reads `theme.json`) or fx-autoconfig; `chrome.css` also works on its own.
@@ -47,7 +48,7 @@ command.
 | `context-menu/settings.*`            | The settings page (chrome privileges, opened in a tab).                            |
 | `context-menu/sample.js`             | Sample data the settings page shows outside Zen.                                   |
 | `context-menu/icons/`                | Fluent and ZenUI icons, `packs.json` and the style sheets generated from them.     |
-| `chrome.css`, `preferences.json`     | The style options.                                                                 |
+| `chrome.css`, `preferences.json`     | Style rules, plus Sine's empty gear-enabling preferences file.                     |
 | `theme.json`                         | Sine manifest: style, preferences, readme and the script.                          |
 | `image.png`, `previews/`             | Preview images (`image.png` is KiKaraage's).                                       |
 | `scripts/check_selector_targets.mjs` | Checks `chrome.css`'s ids, classes and icons, and `menus.js`'s menus, against Zen. |
