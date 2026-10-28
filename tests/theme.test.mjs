@@ -75,10 +75,20 @@ test("the settings page links to the project and its configured sponsor", async 
 });
 
 test("the settings page recommends clearing the startup cache after updates", async () => {
-  const settings = await read("context-menu/settings.html");
-  assert.match(settings, /After each update:/);
-  assert.match(settings, /about:support/);
-  assert.match(settings, /Clear startup cache…/);
+  const [settings, styles] = await Promise.all([
+    read("context-menu/settings.html"),
+    read("context-menu/settings.css"),
+  ]);
+  assert.match(
+    settings,
+    /It's recommended to clear the startup cache after each update from/,
+  );
+  assert.match(settings, /<a href="about:support">about:support<\/a>\./);
+  assert.ok(
+    settings.indexOf('class="startup-cache-note"') >
+      settings.indexOf('class="support-line"'),
+  );
+  assert.match(styles, /\.startup-cache-note\s*\{[^}]*color: #ff4d4f;/s);
 });
 
 test("the version matches the changelog and chrome.css", async () => {
