@@ -8,6 +8,13 @@ published as a GitHub release with its notes below (see
 
 ## [Unreleased]
 
+## [5.4.3] - 2026-10-28
+
+### Changed
+
+- The installation guide now recommends clearing Zen's startup cache after
+  each update.
+
 ## [5.4.2] - 2026-10-28
 
 ### Changed

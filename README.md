@@ -55,6 +55,8 @@ Use one copy of the mod at a time: if you have **Zen Context Menu** from Zen's m
 
 Updating from version 4 works the same way: update the mod in Sine (with JS from unofficial sources allowed), then restart Zen. Until the script runs, the style options keep working but no items are hidden; your old choices are kept and carried over once it does.
 
+It's recommended to clear the startup cache after each update from `about:support` (**Clear startup cache…**).
+
 ### Manually (fx-autoconfig)
 
 1. Set up [fx-autoconfig](https://github.com/MrOtherGuy/fx-autoconfig) in Zen.
