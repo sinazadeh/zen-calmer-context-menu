@@ -74,6 +74,13 @@ test("the settings page links to the project and its configured sponsor", async 
   assert.match(browserScript, /window\.openTrustedLinkIn\(url, "tab"/);
 });
 
+test("the settings page recommends clearing the startup cache after updates", async () => {
+  const settings = await read("context-menu/settings.html");
+  assert.match(settings, /After each update:/);
+  assert.match(settings, /about:support/);
+  assert.match(settings, /Clear startup cache…/);
+});
+
 test("the version matches the changelog and chrome.css", async () => {
   const changelog = await read("CHANGELOG.md");
   const [, latest, date] = changelog.match(/^## \[(\d[^\]]*)\] - (\S+)/m);

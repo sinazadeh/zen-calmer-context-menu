@@ -81,6 +81,11 @@ input {
   max-width: 660px;
 }
 
+.intro .startup-cache-note {
+  color: var(--text);
+  font-size: 13px;
+}
+
 .intro .support-line {
   display: flex;
   flex-wrap: wrap;
