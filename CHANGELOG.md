@@ -8,6 +8,12 @@ published as a GitHub release with its notes below (see
 
 ## [Unreleased]
 
+## [5.5.1] - 2026-11-07
+
+### Changed
+
+- The startup-cache note on the settings page is an info box with an icon.
+
 ## [5.5.0] - 2026-11-07
 
 ### Added

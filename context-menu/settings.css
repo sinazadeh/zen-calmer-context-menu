@@ -82,13 +82,32 @@ input {
 }
 
 .intro .startup-cache-note {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: fit-content;
+  max-width: 100%;
   margin-bottom: 28px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--raised);
   color: var(--muted);
   font-size: 13px;
 }
+.startup-cache-note svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-width: 1.4;
+}
 
 .startup-cache-note a {
-  color: var(--accent);
+  color: var(--text);
+  font-weight: 700;
 }
 
 .intro .support-line {
