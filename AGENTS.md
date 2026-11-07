@@ -54,6 +54,7 @@ command.
 | `scripts/check_selector_targets.mjs` | Checks `chrome.css`'s ids, classes and icons, and `menus.js`'s menus, against Zen. |
 | `scripts/check_menus.mjs`            | Opens real menus in a downloaded Zen with each option on and items hidden.         |
 | `scripts/menu_scenarios.mjs`         | The menus `check_menus.mjs` opens, and how.                                        |
+| `scripts/check_settings_page.mjs`    | Screenshots and checks the settings page in Playwright (opt-in, not CI).           |
 | `scripts/css_targets.mjs`            | Pure helpers for the checks; separator lint.                                       |
 | `scripts/marionette.mjs`             | Minimal Marionette client for Zen.                                                 |
 | `scripts/zen_release.mjs`            | Finds and downloads Zen releases.                                                  |

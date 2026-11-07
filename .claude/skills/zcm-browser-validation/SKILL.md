@@ -17,6 +17,10 @@ Zen the same way: [headless Zen](references/headless-zen.md) explains
 loading the script like Sine, installing a test extension, other mods, and
 screenshotting the settings page.
 
+The settings page also runs outside Zen on its sample data;
+[Playwright](references/settings-page-playwright.md) screenshots and checks
+it in light and dark themes at two widths.
+
 ## By hand
 
 Use a test profile with Sine (add the repository as

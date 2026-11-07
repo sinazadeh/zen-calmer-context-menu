@@ -83,13 +83,12 @@ input {
 
 .intro .startup-cache-note {
   margin-bottom: 28px;
-  color: #ff4d4f;
+  color: var(--muted);
   font-size: 13px;
-  font-weight: 600;
 }
 
 .startup-cache-note a {
-  color: inherit;
+  color: var(--accent);
 }
 
 .intro .support-line {
@@ -382,7 +381,7 @@ button.group-head:hover h3 {
   background: transparent;
   color: var(--muted);
   cursor: grab;
-  opacity: 0.45;
+  opacity: 0.7;
 }
 .drag-handle:hover,
 .drag-handle:focus-visible {
@@ -392,7 +391,7 @@ button.group-head:hover h3 {
 }
 .drag-handle[aria-disabled="true"] {
   cursor: default;
-  opacity: 0.18;
+  opacity: 0.35;
 }
 .row.dragging {
   opacity: 0.45;
@@ -665,9 +664,17 @@ button.group-head:hover h3 {
   flex-wrap: wrap;
   cursor: default;
 }
+/* Wraps the controls under the text once the row is too narrow for both */
+.option:has(.choices) .option-text {
+  flex: 1 1 240px;
+}
+.option-hint {
+  font-size: 12px;
+  color: var(--accent);
+}
 /* Has no effect with the other options as they are */
 .option.inactive {
-  opacity: 0.5;
+  opacity: 0.65;
 }
 
 /* The icon styles, each with a few of its icons */
@@ -844,5 +851,37 @@ button.group-head:hover h3 {
   }
   .preview {
     max-height: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .page {
+    padding: 24px 12px 48px;
+  }
+  .card {
+    padding: 14px;
+  }
+  /* The preview sits above the list so a change shows without scrolling. */
+  .preview-wrap {
+    order: -1;
+  }
+  .preview {
+    max-height: 240px;
+  }
+  .row-main {
+    gap: 8px;
+    padding: 8px;
+  }
+  .row-label {
+    flex-wrap: wrap;
+    gap: 2px 8px;
+  }
+  .row-label > span:first-child {
+    overflow: visible;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .search {
+    width: 100%;
   }
 }

@@ -8,6 +8,22 @@ published as a GitHub release with its notes below (see
 
 ## [Unreleased]
 
+## [5.5.0] - 2026-11-07
+
+### Added
+
+- The settings page says why **Icon style** and **Gray extension icons** are
+  dimmed.
+
+### Changed
+
+- The settings page works at narrow widths: option descriptions and controls
+  wrap instead of squeezing each other, item labels wrap instead of being cut
+  off, and the preview sits above the list.
+- The startup-cache note is muted instead of red, and the support line reads
+  "Sponsor its development".
+- Drag handles are easier to see.
+
 ## [5.4.3] - 2026-10-28
 
 ### Changed

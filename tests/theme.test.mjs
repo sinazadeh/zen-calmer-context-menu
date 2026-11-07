@@ -88,7 +88,7 @@ test("the settings page recommends clearing the startup cache after updates", as
     settings.indexOf('class="startup-cache-note"') >
       settings.indexOf('class="support-line"'),
   );
-  assert.match(styles, /\.startup-cache-note\s*\{[^}]*color: #ff4d4f;/s);
+  assert.match(styles, /\.startup-cache-note\s*\{[^}]*color: var\(--muted\);/s);
 });
 
 test("the version matches the changelog and chrome.css", async () => {

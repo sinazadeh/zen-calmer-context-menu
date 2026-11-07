@@ -110,12 +110,15 @@ const OPTIONS = [
     needs: () =>
       (isOn("uc.fixcontext.restoreicons") && !isOn("uc.hidecontext.icons")) ||
       isOn("uc.fixcontext.tabactions"),
+    inactiveText:
+      "Not used yet: set Icons to “Every option”, or turn on the quick actions.",
   },
   {
     pref: "uc.fixcontext.grayscaleicons",
     title: "Gray extension icons",
     text: "Draw the icons of extensions' options in grays, in color again under the pointer.",
     needs: () => !isOn("uc.hidecontext.icons"),
+    inactiveText: "Not used while Icons is set to None.",
   },
   {
     title: "Separators",
@@ -884,12 +887,15 @@ const sampleIcons = (pack) =>
       : `icons/${pack}/${name}.svg`,
   );
 
-const optionText = (option) =>
+const optionText = (option, inactive) =>
   h(
     "span",
     { class: "option-text" },
     h("b", {}, option.title),
     h("span", { class: "muted" }, option.text),
+    inactive && option.inactiveText
+      ? h("span", { class: "option-hint" }, option.inactiveText)
+      : null,
   );
 
 function renderChoices(option, inactive) {
@@ -897,7 +903,7 @@ function renderChoices(option, inactive) {
   return h(
     "div",
     { class: `option${inactive ? " inactive" : ""}` },
-    optionText(option),
+    optionText(option, inactive),
     h(
       "div",
       {
@@ -935,7 +941,7 @@ function renderOptions() {
         : h(
             "label",
             { class: `option${inactive ? " inactive" : ""}` },
-            optionText(option),
+            optionText(option, inactive),
             h("input", {
               type: "checkbox",
               class: "switch",
