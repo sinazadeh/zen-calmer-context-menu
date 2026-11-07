@@ -7,7 +7,7 @@
   "readme": "README.md",
   "preferences": "preferences.json",
   "image": "https://raw.githubusercontent.com/sinazadeh/zen-calmer-context-menu/main/image.png",
-  "author": "KiKaraage, sinazadeh",
+  "author": "sinazadeh",
   "version": "5.5.1",
   "tags": ["context menu", "declutter"],
   "fork": ["zen"],
