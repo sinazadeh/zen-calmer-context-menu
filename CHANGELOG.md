@@ -8,6 +8,21 @@ published as a GitHub release with its notes below (see
 
 ## [Unreleased]
 
+## [5.5.2] - 2026-11-08
+
+### Fixed
+
+- Text you had selected could be saved in `zen-context-menu.json` inside the
+  name of an extension's menu item that quotes it. Such items are no longer
+  recorded.
+- Switching the mod off no longer lets a menu that was just opened save what
+  it showed afterwards.
+
+### Changed
+
+- Changing several hidden-item preferences at once (importing a backup)
+  updates open menus once.
+
 ## [5.5.1] - 2026-11-07
 
 ### Changed

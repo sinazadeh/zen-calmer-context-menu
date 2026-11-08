@@ -283,6 +283,22 @@ test("withoutSelection keeps the selected text out of saved labels", () => {
   assert.equal(Z.withoutSelection("Ship it", "hi"), "Ship it");
 });
 
+test("keys made from a label that quotes the selection aren't saved", () => {
+  const selection = "hunter2pass";
+  assert.ok(
+    Z.keyQuotesSelection("ext:read-later|Save “hunter2pass”", selection),
+  );
+  assert.ok(
+    Z.keyQuotesSelection("tabContextMenu|label:Look up hunter2pass", selection),
+  );
+  assert.ok(!Z.keyQuotesSelection("ext:read-later|Open list", selection));
+  assert.ok(!Z.keyQuotesSelection("ext:hunter2pass-ext", selection));
+  assert.ok(!Z.keyQuotesSelection("#context_hunter2pass", selection));
+  assert.ok(
+    !Z.keyQuotesSelection("tabContextMenu|l10n:hunter2pass", selection),
+  );
+});
+
 test("a backup restores the hidden items and style options it saved", () => {
   const text = Z.makeBackup(
     new Set(["#context_reloadTab", "#context-selectall"]),

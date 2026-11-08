@@ -24,6 +24,6 @@ jobs:
 
       # The empty Sine preferences file, CSS conventions and the
       # selector helpers. Opening real menus still needs the manual checks in
-      # AGENTS.md.
+      # .claude/skills/zcm-browser-validation/SKILL.md.
       - name: Run tests
         run: node --test "tests/*.test.mjs"

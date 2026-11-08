@@ -1,6 +1,6 @@
 # Opens the context menus in the latest Zen release for Linux, with each
 # option on, and checks what they show (see scripts/check_menus.mjs and
-# "Keeping up with Zen" in AGENTS.md). Runs weekly, so a Zen update that
+# .claude/skills/zcm-zen-updates/SKILL.md). Runs weekly, so a Zen update that
 # breaks an option shows up quickly, and on pull requests that change the
 # mod or the check.
 

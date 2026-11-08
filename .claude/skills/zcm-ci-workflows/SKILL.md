@@ -14,14 +14,19 @@ npm install --no-save --package-lock=false eslint@9.7.0 @eslint/js@9.7.0 globals
 
 ## Workflows
 
-| Workflow               | When                                                                      | Runs                                                    |
-| ---------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------- |
-| `tests.yml`            | push and pull requests to `main`                                          | `node --test "tests/*.test.mjs"`                        |
-| `prettier.yml`         | push and pull requests to `main`                                          | `prettier --check "**/*.{css,js,mjs,html,md,json,yml}"` |
-| `eslint.yml`           | push and pull requests to `main`                                          | `eslint .`                                              |
-| `selector-targets.yml` | weekly, and pull requests touching `chrome.css`, the script or `scripts/` | `check_selector_targets.mjs` for release and dev        |
-| `menus.yml`            | weekly, and pull requests touching the mod or `scripts/`                  | `check_menus.mjs` in the latest Zen, headless           |
-| `release.yml`          | `theme.json` changes on `main`; a dry run on pull requests                | `publish_releases.mjs` (see `zcm-release`)              |
+| Workflow               | When                                                                                                                     | Runs                                                    |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------- |
+| `tests.yml`            | push and pull requests to `main`                                                                                         | `node --test "tests/*.test.mjs"`                        |
+| `prettier.yml`         | push and pull requests to `main`                                                                                         | `prettier --check "**/*.{css,js,mjs,html,md,json,yml}"` |
+| `eslint.yml`           | push and pull requests to `main`                                                                                         | `eslint .`                                              |
+| `selector-targets.yml` | weekly, and pull requests touching `chrome.css`, the script or `scripts/`                                                | `check_selector_targets.mjs` for release and dev        |
+| `menus.yml`            | weekly, and pull requests touching the mod (`chrome.css`, `preferences.json`, the script, `context-menu/`) or `scripts/` | `check_menus.mjs` in the latest Zen, headless           |
+| `release.yml`          | `theme.json` changes on `main`; a dry run on pull requests                                                               | `publish_releases.mjs` (see `zcm-release`)              |
+
+Dependabot (`.github/dependabot.yml`) proposes updates to the actions' versions
+weekly. The tool versions are written out in several files;
+`tests/tooling_versions.test.mjs` fails when they disagree, so change them
+everywhere at once.
 
 `tests/` includes `agent_config.test.mjs`, which runs
 `scripts/lint_agent_config.mjs` on `AGENTS.md` and `.claude/`, and

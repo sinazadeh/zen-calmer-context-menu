@@ -678,22 +678,43 @@ var ZenContextMenuShared = (() => {
     return `${label.slice(0, at)}…${after}`;
   }
 
+  /**
+   * Whether an item key made from a label (`ext:<widget>|<label>`,
+   * `<menu>|label:<label>`) quotes the selected text. Such keys must not be
+   * saved: they'd put the selection on disk, and change with it.
+   *
+   * @param {string} key
+   * @param {string} selection the selected text, if any
+   * @returns {boolean}
+   */
+  function keyQuotesSelection(key, selection) {
+    const label =
+      /^ext:[^|]+\|(.*)$/s.exec(key)?.[1] ??
+      /^[^|]+\|label:(.*)$/s.exec(key)?.[1];
+    return label !== undefined && withoutSelection(label, selection) !== label;
+  }
+
   /** The value saved for a set of hidden items. */
   const serializeHidden = (keys) => JSON.stringify([...keys].sort());
 
   const ORDER_MAX_MENUS = MENUS.length;
-  const ORDER_MAX_ITEMS = 10000;
+  // Real lists are far shorter; this bounds what a pref or backup may hold.
+  const MAX_KEYS = 10000;
   const ORDER_MAX_KEY_LENGTH = 1000;
   const MENU_IDS = new Set(MENUS.map(({ id }) => id));
 
   function ordersFrom(value, damaged = false) {
-    if (!value || typeof value !== "object" || Array.isArray(value)) {
+    // A damaged preference is ignored; a damaged backup is refused.
+    const bad = () => {
       if (damaged) throw new Error("This backup's menu order is damaged.");
+    };
+    if (!value || typeof value !== "object" || Array.isArray(value)) {
+      bad();
       return new Map();
     }
     const entries = Object.entries(value);
     if (entries.length > ORDER_MAX_MENUS) {
-      if (damaged) throw new Error("This backup's menu order is damaged.");
+      bad();
       return new Map();
     }
     const orders = new Map();
@@ -701,12 +722,8 @@ var ZenContextMenuShared = (() => {
       if (!MENU_IDS.has(menu)) {
         continue;
       }
-      if (!Array.isArray(list)) {
-        if (damaged) throw new Error("This backup's menu order is damaged.");
-        continue;
-      }
-      if (list.length > ORDER_MAX_ITEMS) {
-        if (damaged) throw new Error("This backup's menu order is damaged.");
+      if (!Array.isArray(list) || list.length > MAX_KEYS) {
+        bad();
         continue;
       }
       const seen = new Set();
@@ -777,7 +794,6 @@ var ZenContextMenuShared = (() => {
   const BACKUP_VERSION = 1;
   // Real backups are a few kilobytes; these bound what an import reads.
   const BACKUP_MAX_LENGTH = 1024 * 1024;
-  const BACKUP_MAX_ITEMS = 10000;
   const BACKUP_MAX_KEY_LENGTH = 1000;
 
   /**
@@ -850,7 +866,7 @@ var ZenContextMenuShared = (() => {
       );
     }
     const keys = (list, what) => {
-      if (!Array.isArray(list) || list.length > BACKUP_MAX_ITEMS) {
+      if (!Array.isArray(list) || list.length > MAX_KEYS) {
         throw new Error(`This backup's list of ${what} items is damaged.`);
       }
       return new Set(
@@ -921,6 +937,7 @@ var ZenContextMenuShared = (() => {
     serializeOrders,
     orderByKeys,
     withoutSelection,
+    keyQuotesSelection,
     BACKUP_MAX_LENGTH,
     makeBackup,
     parseBackup,

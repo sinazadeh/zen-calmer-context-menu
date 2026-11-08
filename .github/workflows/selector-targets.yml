@@ -2,7 +2,8 @@
 # release and Zen's development branch (and the Firefox version each is built
 # on), every week. A red "release" run means an option likely stopped working
 # for users; a red "dev" run is an early warning. See
-# scripts/check_selector_targets.mjs and "Keeping up with Zen" in AGENTS.md.
+# scripts/check_selector_targets.mjs and
+# .claude/skills/zcm-zen-updates/SKILL.md.
 
 name: Selector targets
 

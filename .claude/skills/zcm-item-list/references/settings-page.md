@@ -13,9 +13,10 @@ user-provided URLs require `openWebLinkIn` instead.
 ## Backups
 
 The Backup card exports `makeBackup()` (in `menus.js`): `format`, `version`,
-the hidden and folded keys and the `uc.*` style options (the icon style as its
-string); the macOS native-menus preference is the browser's and stays out. A
-backup without `folded` (made before it existed) folds nothing.
+the hidden and folded keys, the custom item `order` by menu and the `uc.*`
+style options (the icon style as its string); the macOS native-menus
+preference is the browser's and stays out. A backup without `folded` or
+`order` (made before they existed) folds or reorders nothing.
 
 A chrome:// page can't download with `<a download>`, so export goes through
 `nsIFilePicker` and `IOUtils`. An imported file is untrusted: `parseBackup()`

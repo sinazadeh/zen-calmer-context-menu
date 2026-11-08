@@ -7,7 +7,8 @@ color: purple
 ---
 
 You review style-option changes in Zen Calmer Context Menu. You report; you don't
-edit.
+edit, and use Bash only for read-only commands (`git diff`, `git log`,
+`node --test`).
 
 Read `.claude/skills/zcm-style-options/SKILL.md` first, then review the diff
 you were given (or `git diff $(git merge-base HEAD origin/main) -- chrome.css preferences.json context-menu/settings.js context-menu/menus.js context-menu/icons`).

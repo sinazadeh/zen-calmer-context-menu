@@ -645,7 +645,7 @@
     if (root) {
       // Labels are filled in by Fluent right after the menu shows.
       setTimeout(() => {
-        if (popup.state === "open") {
+        if (!unloaded && popup.state === "open") {
           record(popup, root);
         }
       }, 250);
@@ -836,7 +836,10 @@
       }
       const info = infoOf(el);
       const key = Z.itemKey(info, root.id);
-      if (!key) {
+      if (
+        !key ||
+        pageText.some((quoted) => Z.keyQuotesSelection(key, quoted))
+      ) {
         continue;
       }
       const label = pageText.reduce(
@@ -1293,25 +1296,33 @@
 
     // Hidden items changed (settings page, another window): menus that are
     // open right now update too.
+    // A backup import changes several prefs at once: apply them together.
+    let prefTimer = null;
+    const reapply = () => {
+      prefTimer = null;
+      for (const popup of [...states.keys()]) {
+        const root = rootMenuOf(popup);
+        if (root) {
+          apply(popup, root);
+          if (popup === root) {
+            rearrange(popup, root);
+            apply(popup, root);
+          }
+        }
+      }
+    };
     const prefObserver = {
       observe() {
         readHidden();
-        for (const popup of [...states.keys()]) {
-          const root = rootMenuOf(popup);
-          if (root) {
-            apply(popup, root);
-            if (popup === root) {
-              rearrange(popup, root);
-              apply(popup, root);
-            }
-          }
-        }
+        clearTimeout(prefTimer);
+        prefTimer = setTimeout(reapply, 50);
       },
     };
     Services.prefs.addObserver(Z.PREF_HIDDEN, prefObserver);
     Services.prefs.addObserver(Z.PREF_FOLDED, prefObserver);
     Services.prefs.addObserver(Z.PREF_ORDER, prefObserver);
     cleanups.push(() => {
+      clearTimeout(prefTimer);
       Services.prefs.removeObserver(Z.PREF_HIDDEN, prefObserver);
       Services.prefs.removeObserver(Z.PREF_FOLDED, prefObserver);
       Services.prefs.removeObserver(Z.PREF_ORDER, prefObserver);

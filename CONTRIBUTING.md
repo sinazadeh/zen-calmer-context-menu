@@ -51,7 +51,9 @@ MOZ_HEADLESS=1 node scripts/check_menus.mjs
 
 The menu check only runs on Linux and doesn't look at how menus or the
 settings page look. For changes to the mod, check the affected menus in Zen
-with the option on and off, or the items hidden and shown; `AGENTS.md` ("Manual browser validation") lists the menus and cases
+with the option on and off, or the items hidden and shown; the
+[browser-validation skill](.claude/skills/zcm-browser-validation/SKILL.md)
+lists the menus and cases
 worth covering. Look out for two separators next to each other or one at the
 top or bottom of a menu.
 

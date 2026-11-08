@@ -13,8 +13,8 @@
 // https://github.com/mozilla-firefox/firefox at the FIREFOX_<version>_RELEASE
 // tag of the version in Zen's surfer.json. Needs git and network access.
 //
-// A missing id means an option silently stopped doing anything; see AGENTS.md
-// ("Keeping up with Zen") for how to find where an item went. It also checks
+// A missing id means an option silently stopped doing anything; see
+// .claude/skills/zcm-zen-updates/SKILL.md for how to find where an item went. It also checks
 // that the menus context-menu/menus.js lists still exist: a missing one
 // disappears from the settings page.
 
