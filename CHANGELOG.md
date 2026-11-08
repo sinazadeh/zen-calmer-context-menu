@@ -8,6 +8,13 @@ published as a GitHub release with its notes below (see
 
 ## [Unreleased]
 
+## [5.5.3] - 2026-11-08
+
+### Changed
+
+- The support line on the settings page no longer has "or" between the Star
+  and Sponsor buttons.
+
 ## [5.5.2] - 2026-11-08
 
 ### Fixed
