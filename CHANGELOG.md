@@ -8,6 +8,8 @@ published as a GitHub release with its notes below (see
 
 ## [Unreleased]
 
+## [5.6.0] - 2026-11-23
+
 ### Added
 
 - An Appearance option to hide the current workspace indicator from the
