@@ -8,6 +8,13 @@ published as a GitHub release with its notes below (see
 
 ## [Unreleased]
 
+### Added
+
+- An Appearance option to hide the current workspace indicator from the
+  sidebar.
+- An Appearance option to hide the Back and Forward buttons while they are
+  unavailable, while keeping them visible during toolbar customization.
+
 ## [5.5.3] - 2026-11-08
 
 ### Changed

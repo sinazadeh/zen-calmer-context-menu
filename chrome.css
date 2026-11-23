@@ -2,11 +2,12 @@
  * Declutter your right click menus and hide the options you don't need.
  *
  * This style sheet holds the style options (reordering the tab menu, quick
- * actions, icons, separators, space colors, one Copy Link option, hiding
- * unavailable options). Hiding single items and moving them into "More
- * options" is done by context-menu.uc.js, which reads the lists chosen on
- * the settings page (context-menu/settings.html) and loads the Fluent and
- * ZenUI icon styles (context-menu/icons).
+ * actions, icons, separators, space colors, the workspace indicator,
+ * navigation buttons, one Copy Link option and unavailable options). Hiding
+ * single menu items and moving them into "More options" is done by
+ * context-menu.uc.js, which reads the lists chosen on the settings page
+ * (context-menu/settings.html) and loads the Fluent and ZenUI icon styles
+ * (context-menu/icons).
  *
  * Originally made by KiKaraage (https://github.com/KiKaraage/ZenMods),
  * MIT License. This fork keeps it working with current Zen releases:
@@ -270,6 +271,22 @@
       var(--zen-colors-tertiary)
     ) !important;
     --background-color-canvas: var(--panel-background-color) !important;
+  }
+}
+
+/* Hide the current workspace indicator from the sidebar */
+@media -moz-pref("uc.fixcontext.hideworkspaceindicator") {
+  .zen-current-workspace-indicator {
+    display: none !important;
+  }
+}
+
+/* Hide the Back and Forward buttons while each is unavailable, except when
+ * the toolbar is being customized */
+@media -moz-pref("uc.fixcontext.hideunavailablebackforward") {
+  :root:not([customizing]) #back-button[disabled],
+  :root:not([customizing]) #forward-button[disabled] {
+    display: none !important;
   }
 }
 

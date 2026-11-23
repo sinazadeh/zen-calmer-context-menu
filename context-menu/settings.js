@@ -147,6 +147,16 @@ const OPTIONS = [
     ],
   },
   {
+    pref: "uc.fixcontext.hideworkspaceindicator",
+    title: "Hide workspace indicator",
+    text: "Hide the current workspace indicator from the sidebar.",
+  },
+  {
+    pref: "uc.fixcontext.hideunavailablebackforward",
+    title: "Hide unavailable Back and Forward",
+    text: "Hide each button when there is no page to go back or forward to; both remain visible while customizing the toolbar.",
+  },
+  {
     pref: "widget.macos.native-context-menus",
     invert: true,
     macOnly: true,

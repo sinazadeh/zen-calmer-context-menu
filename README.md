@@ -34,6 +34,8 @@ Declutter your right click menus: switch off any option you never use, or tuck i
   - Draw extensions' icons in grays
   - Separators: lines, **faint** lines, or **none**
   - Menu color: your theme's, your space's **gradient**, or its **accent color**, for menus, tab previews and other small pop-ups
+  - Hide the current workspace indicator from the sidebar
+  - Hide the Back and Forward buttons when there is nowhere for them to go
 
 Coming from version 4 or the theme store version? The "Hide ..." options you had on become hidden items the first time version 5 runs, so your menus stay the way they were.
 
