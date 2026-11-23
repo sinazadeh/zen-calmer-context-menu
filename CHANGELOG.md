@@ -8,6 +8,17 @@ published as a GitHub release with its notes below (see
 
 ## [Unreleased]
 
+## [5.6.1] - 2026-11-23
+
+### Fixed
+
+- Restored icons no longer stay black in dark menus whose final label color
+  is applied only after the menu opens.
+- Restored icons no longer add extra padding before their icon column.
+- The settings preview now updates immediately for menu-affecting Appearance
+  settings, including tab-menu order, icons, quick actions, unavailable
+  options, Copy Link, extension grayscale, separators and menu color.
+
 ## [5.6.0] - 2026-11-23
 
 ### Added

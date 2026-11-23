@@ -1,8 +1,9 @@
 // Opens the settings page outside Zen, on its sample data, in Playwright's
 // browsers: screenshots it in a light and a dark theme at a wide and a narrow
 // width, and fails on console errors, a horizontal scrollbar, an empty list or
-// a switch that doesn't hide its row. Not part of CI; Playwright is installed
-// ad hoc (the repository has no package.json on purpose):
+// a switch that doesn't hide its row, or Appearance choices that don't update
+// the preview. Not part of CI; Playwright is installed ad hoc (the repository
+// has no package.json on purpose):
 //
 //   npm install --no-save --package-lock=false playwright
 //   npx playwright install chromium
@@ -121,6 +122,75 @@ try {
       if (/\boff\b/.test((await row.getAttribute("class")) ?? "")) {
         problems.push("switching an item back on left its row off");
       }
+
+      // The preview follows the Icons choice immediately. "None" removes
+      // both images and the blank slots that otherwise align iconless rows.
+      const iconChoices = page.getByRole("radiogroup", { name: "Icons" });
+      const previewIcons = page.locator(".preview .p-item:not(.p-nav) img");
+      if ((await previewIcons.count()) === 0) {
+        problems.push("the preview starts without any item icons to test");
+      }
+      await iconChoices.getByRole("radio", { name: "None" }).click();
+      if ((await previewIcons.count()) !== 0) {
+        problems.push('the preview keeps item icons with Icons set to "None"');
+      }
+      if ((await page.locator(".preview .p-blank").count()) !== 0) {
+        problems.push(
+          'the preview keeps blank icon slots with Icons set to "None"',
+        );
+      }
+      await iconChoices.getByRole("radio", { name: "Zen's" }).click();
+
+      const separatorChoices = page.getByRole("radiogroup", {
+        name: "Separators",
+      });
+      const firstSeparator = page.locator(".preview .p-sep").first();
+      await separatorChoices.getByRole("radio", { name: "Faint" }).click();
+      if (
+        (await firstSeparator.evaluate(
+          (el) => el.ownerDocument.defaultView.getComputedStyle(el).opacity,
+        )) !== "0.5"
+      ) {
+        problems.push(
+          'the preview separators are not faint with "Faint" selected',
+        );
+      }
+      await separatorChoices.getByRole("radio", { name: "None" }).click();
+      if (await firstSeparator.isVisible()) {
+        problems.push('the preview keeps separators with "None" selected');
+      }
+      await separatorChoices.getByRole("radio", { name: "Lines" }).click();
+
+      const colorChoices = page.getByRole("radiogroup", {
+        name: "Menu color",
+      });
+      await colorChoices.getByRole("radio", { name: "Space gradient" }).click();
+      const gradient = await page
+        .locator(".preview")
+        .evaluate(
+          (el) =>
+            el.ownerDocument.defaultView.getComputedStyle(el).backgroundImage,
+        );
+      if (gradient === "none") {
+        problems.push("the preview doesn't show the selected space gradient");
+      }
+      await colorChoices.getByRole("radio", { name: "Space color" }).click();
+      if (
+        (await page.locator(".preview").getAttribute("data-color")) !== "space"
+      ) {
+        problems.push("the preview doesn't show the selected space color");
+      }
+      await colorChoices.getByRole("radio", { name: "Theme's" }).click();
+
+      const quickActions = page
+        .locator(".option")
+        .filter({ hasText: "Quick actions in the tab menu" })
+        .locator("input.switch");
+      await quickActions.check();
+      if ((await page.locator(".preview .p-actions").count()) !== 1) {
+        problems.push("the preview doesn't show enabled quick actions");
+      }
+      await quickActions.uncheck();
 
       const file = join(outDir, `settings-${colorScheme}-${viewport.name}.png`);
       await page.screenshot({ path: file, fullPage: true });

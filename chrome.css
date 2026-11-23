@@ -1,4 +1,4 @@
-/* Zen Calmer Context Menu v5.6.0
+/* Zen Calmer Context Menu v5.6.1
  * Declutter your right click menus and hide the options you don't need.
  *
  * This style sheet holds the style options (reordering the tab menu, quick
@@ -399,14 +399,15 @@
     fill: var(--calmer-icon-fill, currentColor) !important;
   }
 
-  /* One gutter for every entry: the icon at the same distance from the edge
-   * and the label at the same distance from the icon, whatever padding the
-   * platform or a theme gives entries or labels (some leave extra room for
-   * a missing icon, which then pushes these icons inward). macOS draws its
-   * checkmark gutter before the icon slot, so it keeps its own layout. */
+  /* One gutter for every entry: no extra inset before the icon, and the label
+   * at the same distance from it, whatever padding the platform or a theme
+   * gives entries or labels (some leave extra room for a missing icon, which
+   * then pushes these icons inward). The popup's own padding keeps the icons
+   * away from its edge. macOS draws its checkmark gutter before the icon slot,
+   * so it keeps its own layout. */
   @media not (-moz-platform: macos) {
     menupopup:not(menulist > menupopup, #ContentSelectDropdown > menupopup) {
-      --calmer-icon-inset: 10px;
+      --calmer-icon-inset: 0px;
       --calmer-icon-gap: 10px;
 
       > :is(menu, menuitem, menucaption) {

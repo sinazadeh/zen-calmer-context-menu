@@ -108,8 +108,13 @@ page follows the icon style. Outside Zen the page loads `sample.js`
 
 Options with `choices` (the icon style) render as a segmented control with
 a few sample icons each; their files must exist in every pack (a test
-checks). Each row has a **More** button (shown on hover) that folds it into
-"More options"; submenu items can't be folded, hidden ones can't either.
+checks). The preview applies menu-affecting Appearance settings immediately:
+tab-menu order, quick actions, unavailable and Copy Link items, icons and
+extension grayscale, separators and menu color. It merges the live tab order
+with the last snapshot's details. **Icons: None** omits icons and their blank
+alignment slots except for the page menu's navigation buttons, which the real
+CSS also keeps. Each row has a **More** button (shown on hover) that folds it
+into "More options"; submenu items can't be folded, hidden ones can't either.
 The preview moves folded items into a "More options" entry at the end.
 
 See [settings-page.md](references/settings-page.md) before changing external

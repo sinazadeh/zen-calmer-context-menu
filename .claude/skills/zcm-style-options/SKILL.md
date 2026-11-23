@@ -68,12 +68,13 @@ version. The old "Hide ..." options live on only in `LEGACY_PREFS`.
   `chrome://browser/skin/*`, `chrome://global/skin/icons/*`): Zen deletes
   unused ones, which is how 24 of v3.1's disappeared. The icon styles'
   own SVGs are the exception (below).
-- **Restored icons are laid out and colored by force**: one gutter (inset,
-  16px icon, gap) on every platform but macOS, whatever padding a theme
-  gives items or labels, and `fill: var(--calmer-icon-fill)`, which the
+- **Restored icons are laid out and colored by force**: one gutter (no extra
+  item inset, 16px icon, gap) on every platform but macOS, whatever padding
+  a theme gives items or labels, and `fill: var(--calmer-icon-fill)`, which the
   script sets per menu from the computed color of its labels, at full
-  opacity. Themes that color labels but not items otherwise get black
-  icons.
+  opacity. It measures during `popupshowing` and again during `popupshown`:
+  some themes don't apply their final label color until the menu is visible.
+  Themes that color labels but not items otherwise get black icons.
 
 ## Alternatives
 

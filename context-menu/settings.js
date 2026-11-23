@@ -210,6 +210,7 @@ function pick(option, id) {
     }
   }
   renderOptions();
+  renderPreview();
 }
 
 /* ---------- helpers ---------- */
@@ -694,13 +695,7 @@ function renderTabs() {
 
 /* ---------- preview ---------- */
 
-// What the menu showed the last time it was opened (on this kind of target,
-// for the page menu), or a guess from the list.
-function previewSource(menu) {
-  const snapshots = menu.snapshots ?? [];
-  if (snapshots.length) {
-    return snapshots.find((s) => s.context === context) ?? snapshots[0];
-  }
+function listPreviewSource(menu) {
   if (menu.id === "contentAreaContextMenu") {
     return null;
   }
@@ -721,10 +716,42 @@ function previewSource(menu) {
   return { context: null, at: null, entries };
 }
 
+// What the menu showed the last time it was opened (on this kind of target,
+// for the page menu), or a guess from the list. The tab menu uses the live
+// catalog's order so its reorder option updates immediately, while keeping
+// the snapshot's disabled state and other details.
+function previewSource(menu) {
+  const snapshots = menu.snapshots ?? [];
+  const snapshot =
+    snapshots.find((candidate) => candidate.context === context) ??
+    snapshots[0];
+  if (!snapshot || menu.id !== "tabContextMenu") {
+    return snapshot ?? listPreviewSource(menu);
+  }
+  const listed = listPreviewSource(menu);
+  const saved = new Map(
+    snapshot.entries
+      .filter((entry) => entry.key)
+      .map((entry) => [Z.canonicalKey(entry.key), entry]),
+  );
+  return {
+    ...snapshot,
+    entries: listed.entries.map((entry) =>
+      entry.key ? { ...saved.get(Z.canonicalKey(entry.key)), ...entry } : entry,
+    ),
+  };
+}
+
 function orderedPreviewEntries(menu, source) {
+  const rows = new Map(
+    [...allRows(menu)].map((row) => [Z.canonicalKey(row.key), row]),
+  );
   const result = source.map((entry) => ({
     ...entry,
     key: entry.key && Z.canonicalKey(entry.key),
+    extension:
+      entry.extension ??
+      (entry.key && rows.get(Z.canonicalKey(entry.key))?.extension),
   }));
   for (const group of menu.groups) {
     const keys = new Set(group.rows.map(({ key }) => key));
@@ -740,6 +767,76 @@ function orderedPreviewEntries(menu, source) {
   return result;
 }
 
+const TAB_ACTION_KEYS = [
+  "#context_reloadTab",
+  "#context_pinTab",
+  "#context_zen-add-essential",
+  "#context_bookmarkTab",
+];
+
+const COPY_LINK_PAIRS = [
+  ["#context-copylink", "#context-stripOnShareLink"],
+  ["#context-copy-link-to-highlight", "#context-copy-clean-link-to-highlight"],
+];
+
+function copyLinkEntriesToHide(entries) {
+  const hiddenKeys = new Set();
+  if (!isOn("uc.hidecontext.copylink")) {
+    return hiddenKeys;
+  }
+  for (const [regularKey, cleanKey] of COPY_LINK_PAIRS) {
+    const clean = entries.find((entry) => entry.key === cleanKey);
+    if (clean) {
+      hiddenKeys.add(clean.disabled ? cleanKey : regularKey);
+    }
+  }
+  return hiddenKeys;
+}
+
+function setPreviewAppearance(preview) {
+  preview.dataset.separators = isOn("uc.hidecontext.separators")
+    ? "none"
+    : isOn("uc.fixcontext.faintseparators")
+      ? "faint"
+      : "lines";
+  preview.dataset.color = isOn("uc.fixcontext.applyzenaccent")
+    ? "space"
+    : isOn("uc.fixcontext.applyzengradient")
+      ? "gradient"
+      : "theme";
+  preview.classList.toggle(
+    "gray-extensions",
+    isOn("uc.fixcontext.grayscaleicons") && !isOn("uc.hidecontext.icons"),
+  );
+
+  if (!chromeWin) {
+    return;
+  }
+  try {
+    const rootStyle = chromeWin.getComputedStyle(
+      chromeWin.document.documentElement,
+    );
+    const primary = rootStyle.getPropertyValue("--zen-primary-color").trim();
+    const tertiary = rootStyle.getPropertyValue("--zen-colors-tertiary").trim();
+    if (primary) {
+      preview.style.setProperty("--preview-space-color", primary);
+    }
+    if (tertiary) {
+      preview.style.setProperty("--preview-space-tertiary", tertiary);
+    }
+    const background = chromeWin.document.getElementById(
+      "zen-browser-background",
+    );
+    const gradient =
+      background && chromeWin.getComputedStyle(background).backgroundImage;
+    if (gradient && gradient !== "none") {
+      preview.style.setProperty("--preview-space-gradient", gradient);
+    }
+  } catch {
+    // The standalone sample and windows without a space use CSS fallbacks.
+  }
+}
+
 function renderPreview() {
   const menu = currentMenu();
   const preview = document.getElementById("preview");
@@ -749,6 +846,7 @@ function renderPreview() {
   document.getElementById("preview-count").textContent = count
     ? `${count} hidden`
     : "";
+  setPreviewAppearance(preview);
   const source = menu && previewSource(menu);
   if (!source) {
     preview.replaceChildren();
@@ -786,10 +884,28 @@ function renderPreview() {
     );
   }
 
-  const all = orderedPreviewEntries(menu, source.entries).map((entry) => ({
+  let all = orderedPreviewEntries(menu, source.entries);
+  const copyLinkHidden = copyLinkEntriesToHide(all);
+  all = all.map((entry) => ({
     ...entry,
-    visible: entry.separator || !hidden.has(Z.canonicalKey(entry.key)),
+    visible:
+      entry.separator ||
+      (!hidden.has(Z.canonicalKey(entry.key)) &&
+        !copyLinkHidden.has(entry.key) &&
+        !(isOn("uc.hidecontext.disabled") && entry.disabled)),
   }));
+  const showIcons = !isOn("uc.hidecontext.icons");
+  let actions = [];
+  if (menu.id === "tabContextMenu" && isOn("uc.fixcontext.tabactions")) {
+    actions = TAB_ACTION_KEYS.map((key) =>
+      all.find((entry) => entry.key === key && entry.visible),
+    ).filter(Boolean);
+    if (actions.length >= 2) {
+      all = all.filter((entry) => !actions.includes(entry));
+    } else {
+      actions = [];
+    }
+  }
   // Folded items go into "More options", at the end.
   const inMore = all.filter(
     (entry) => !entry.separator && entry.visible && folded.has(entry.key),
@@ -808,6 +924,12 @@ function renderPreview() {
       },
     );
   }
+  if (actions.length) {
+    entries.unshift(
+      { actions, visible: true },
+      { separator: true, visible: true },
+    );
+  }
   const dropped = Z.separatorsToHide(entries);
   preview.replaceChildren(
     ...entries
@@ -815,31 +937,45 @@ function renderPreview() {
       .map((entry) =>
         entry.separator
           ? h("div", { class: "p-sep" })
-          : entry.key === "#context-navigation"
+          : entry.actions
             ? h(
                 "div",
-                {
-                  class: "p-item p-nav",
-                  "data-key": entry.key,
-                  title: entry.label,
-                  onmouseenter: () => highlight(entry.key, true),
-                  onmouseleave: () => highlight(entry.key, false),
-                },
-                NAVIGATION_ICONS.map((src) => icon(src)),
+                { class: "p-actions" },
+                entry.actions.map((action) =>
+                  h(
+                    "span",
+                    { title: action.label },
+                    icon(action.icon) ?? h("span", { class: "p-blank" }),
+                  ),
+                ),
               )
-            : h(
-                "div",
-                {
-                  class: `p-item${entry.disabled ? " disabled" : ""}`,
-                  "data-key": entry.key,
-                  title: entry.title ?? null,
-                  onmouseenter: () => highlight(entry.key, true),
-                  onmouseleave: () => highlight(entry.key, false),
-                },
-                icon(entry.icon) ?? h("span", { class: "p-blank" }),
-                h("span", { class: "p-label" }, entry.label),
-                entry.submenu ? h("span", { class: "chevron" }) : null,
-              ),
+            : entry.key === "#context-navigation"
+              ? h(
+                  "div",
+                  {
+                    class: "p-item p-nav",
+                    "data-key": entry.key,
+                    title: entry.label,
+                    onmouseenter: () => highlight(entry.key, true),
+                    onmouseleave: () => highlight(entry.key, false),
+                  },
+                  NAVIGATION_ICONS.map((src) => icon(src)),
+                )
+              : h(
+                  "div",
+                  {
+                    class: `p-item${entry.disabled ? " disabled" : ""}${entry.extension ? " extension" : ""}`,
+                    "data-key": entry.key,
+                    title: entry.title ?? null,
+                    onmouseenter: () => highlight(entry.key, true),
+                    onmouseleave: () => highlight(entry.key, false),
+                  },
+                  showIcons
+                    ? (icon(entry.icon) ?? h("span", { class: "p-blank" }))
+                    : null,
+                  h("span", { class: "p-label" }, entry.label),
+                  entry.submenu ? h("span", { class: "chevron" }) : null,
+                ),
       ),
   );
   if (!preview.children.length) {
@@ -956,11 +1092,14 @@ function renderOptions() {
               type: "checkbox",
               class: "switch",
               checked: optionValue(option),
-              onchange: (e) =>
+              onchange: (e) => {
                 prefs.setBool(
                   option.pref,
                   option.invert ? !e.target.checked : e.target.checked,
-                ),
+                );
+                renderOptions();
+                renderPreview();
+              },
             }),
           );
     }),
@@ -1264,9 +1403,14 @@ prefs.observe(
       }
     } else {
       renderOptions();
-      // The list shows the picked style's icons.
-      if (name === Z.PREF_ICON_PACK) {
+      // These options change data the live catalog derives from the menu.
+      if (
+        name === Z.PREF_ICON_PACK ||
+        name === "uc.fixcontext.ergonomicsfortabs"
+      ) {
         refresh();
+      } else {
+        renderPreview();
       }
     }
   },

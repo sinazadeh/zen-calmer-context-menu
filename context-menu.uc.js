@@ -638,10 +638,17 @@
 
   function onPopupShown(event) {
     const popup = event.target;
-    const root =
-      popup.localName === "menupopup" &&
-      !ownElement(popup) &&
-      rootMenuOf(popup);
+    if (popup.localName !== "menupopup") {
+      return;
+    }
+    // Some themes don't apply the menu's final label color until it is
+    // visible. Replace the early popupshowing value once that color exists.
+    try {
+      tintIcons(popup);
+    } catch (ex) {
+      log(ex);
+    }
+    const root = !ownElement(popup) && rootMenuOf(popup);
     if (root) {
       // Labels are filled in by Fluent right after the menu shows.
       setTimeout(() => {

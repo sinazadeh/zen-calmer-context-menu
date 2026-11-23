@@ -46,6 +46,10 @@ test("display and order declarations are !important", () => {
   }
 });
 
+test("restored icons don't add a second leading inset", () => {
+  assert.match(code, /--calmer-icon-inset:\s*0px;/);
+});
+
 test("everything is gated behind an option", () => {
   // The mod shouldn't change anything the user didn't turn on.
   const stack = [];
