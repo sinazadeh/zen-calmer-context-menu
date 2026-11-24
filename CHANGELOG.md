@@ -8,6 +8,13 @@ published as a GitHub release with its notes below (see
 
 ## [Unreleased]
 
+## [5.7.0] - 2026-11-24
+
+### Added
+
+- Appearance options to center bookmarks in the bookmarks toolbar and hide
+  bookmark and folder icons. Both are off by default.
+
 ## [5.6.1] - 2026-11-23
 
 ### Fixed

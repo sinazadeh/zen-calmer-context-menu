@@ -157,6 +157,16 @@ const OPTIONS = [
     text: "Hide each button when there is no page to go back or forward to; both remain visible while customizing the toolbar.",
   },
   {
+    pref: "uc.fixcontext.centerbookmarks",
+    title: "Center bookmarks",
+    text: "Center bookmarks and folders in the bookmarks toolbar.",
+  },
+  {
+    pref: "uc.fixcontext.hidebookmarkicons",
+    title: "Hide bookmark icons",
+    text: "Hide bookmark and folder icons in the bookmarks toolbar.",
+  },
+  {
     pref: "widget.macos.native-context-menus",
     invert: true,
     macOnly: true,
